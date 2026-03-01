@@ -1,0 +1,54 @@
+{
+  "$schema": "https://json-schema.org/schema",
+  "version": 2,
+  "title": "uv project executor",
+  "description": "Run uv project-oriented commands such as sync, run, lock, build, and publish.",
+  "type": "object",
+  "properties": {
+    "cwd": { "type": "string" },
+    "directory": { "type": "string" },
+    "project": { "type": "string" },
+    "configFile": { "type": "string" },
+    "noConfig": { "type": "boolean", "default": false },
+    "offline": { "type": "boolean", "default": false },
+    "noProgress": { "type": "boolean", "default": false },
+    "quiet": { "type": "boolean", "default": false },
+    "verbose": { "type": "boolean", "default": false },
+    "color": { "type": "string", "enum": ["auto", "always", "never"] },
+    "nativeTls": { "type": "boolean", "default": false },
+    "cacheDir": { "type": "string" },
+    "noCache": { "type": "boolean", "default": false },
+    "managedPython": { "type": "boolean", "default": false },
+    "noManagedPython": { "type": "boolean", "default": false },
+    "noPythonDownloads": { "type": "boolean", "default": false },
+    "allowInsecureHost": { "type": "array", "items": { "type": "string" } },
+    "env": { "type": "object", "additionalProperties": { "type": "string" } },
+    "extraArgs": { "type": "array", "items": { "type": "string" } },
+    "skipVersionCheck": { "type": "boolean", "default": false },
+    "command": {
+      "type": "string",
+      "enum": [
+        "run",
+        "init",
+        "add",
+        "remove",
+        "version",
+        "sync",
+        "lock",
+        "export",
+        "tree",
+        "format",
+        "venv",
+        "build",
+        "publish"
+      ]
+    },
+    "commandArgs": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Arguments passed after the selected uv project command."
+    }
+  },
+  "required": ["command"],
+  "additionalProperties": false
+}

@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/schema",
+  "version": 2,
+  "title": "uv universal executor",
+  "description": "Run any uv command with full argument passthrough.",
+  "type": "object",
+  "properties": {
+    "cwd": { "type": "string", "description": "Working directory relative to the workspace root." },
+    "directory": { "type": "string", "description": "Pass --directory to uv." },
+    "project": { "type": "string", "description": "Pass --project to uv." },
+    "configFile": { "type": "string", "description": "Pass --config-file to uv." },
+    "noConfig": { "type": "boolean", "default": false },
+    "offline": { "type": "boolean", "default": false },
+    "noProgress": { "type": "boolean", "default": false },
+    "quiet": { "type": "boolean", "default": false },
+    "verbose": { "type": "boolean", "default": false },
+    "color": { "type": "string", "enum": ["auto", "always", "never"] },
+    "nativeTls": { "type": "boolean", "default": false },
+    "cacheDir": { "type": "string" },
+    "noCache": { "type": "boolean", "default": false },
+    "managedPython": { "type": "boolean", "default": false },
+    "noManagedPython": { "type": "boolean", "default": false },
+    "noPythonDownloads": { "type": "boolean", "default": false },
+    "allowInsecureHost": { "type": "array", "items": { "type": "string" } },
+    "env": {
+      "type": "object",
+      "additionalProperties": { "type": "string" }
+    },
+    "extraArgs": { "type": "array", "items": { "type": "string" } },
+    "skipVersionCheck": { "type": "boolean", "default": false },
+    "args": {
+      "type": "array",
+      "description": "Arguments passed directly to uv, for example ['pip', 'list'] or ['run', '--', 'pytest'].",
+      "items": { "type": "string" },
+      "minItems": 1
+    }
+  },
+  "required": ["args"],
+  "additionalProperties": false
+}

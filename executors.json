@@ -1,19 +1,44 @@
 {
   "executors": {
-    "sync": {
-      "implementation": "./src/executors/sync/sync",
-      "schema": "./src/executors/sync/schema.json",
-      "description": "Run uv sync for a Python package."
+    "uv": {
+      "implementation": "./src/executors/uv/uv",
+      "schema": "./src/executors/uv/schema.json",
+      "description": "Run any uv command via argument passthrough."
     },
-    "run": {
-      "implementation": "./src/executors/run/run",
-      "schema": "./src/executors/run/schema.json",
-      "description": "Run arbitrary commands through uv run."
+    "project": {
+      "implementation": "./src/executors/project/project",
+      "schema": "./src/executors/project/schema.json",
+      "description": "Run uv project-oriented commands (run/init/add/remove/sync/lock/build/publish/etc)."
     },
-    "add": {
-      "implementation": "./src/executors/add/add",
-      "schema": "./src/executors/add/schema.json",
-      "description": "Add dependencies through uv add."
+    "pip": {
+      "implementation": "./src/executors/pip/pip",
+      "schema": "./src/executors/pip/schema.json",
+      "description": "Run uv pip subcommands."
+    },
+    "tool": {
+      "implementation": "./src/executors/tool/tool",
+      "schema": "./src/executors/tool/schema.json",
+      "description": "Run uv tool subcommands."
+    },
+    "python": {
+      "implementation": "./src/executors/python/python",
+      "schema": "./src/executors/python/schema.json",
+      "description": "Run uv python subcommands."
+    },
+    "auth": {
+      "implementation": "./src/executors/auth/auth",
+      "schema": "./src/executors/auth/schema.json",
+      "description": "Run uv auth subcommands."
+    },
+    "cache": {
+      "implementation": "./src/executors/cache/cache",
+      "schema": "./src/executors/cache/schema.json",
+      "description": "Run uv cache subcommands."
+    },
+    "self": {
+      "implementation": "./src/executors/self/self",
+      "schema": "./src/executors/self/schema.json",
+      "description": "Run uv self subcommands."
     }
   }
 }
