@@ -21,6 +21,8 @@
     "quality:local": "nx run nx-uv:quality-local",
     "quality:ci": "nx run nx-uv:quality-ci",
     "samples:generate": "node tools/generate-samples.cjs",
+    "llms:generate": "node tools/generate-llms.cjs",
+    "llms:check": "node tools/check-llms.cjs",
     "hooks:install": "lefthook install",
     "prepare": "lefthook install",
     "release:version": "nx release version --preid beta",

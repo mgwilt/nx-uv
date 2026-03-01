@@ -39,7 +39,7 @@ jobs:
       - name: Run affected quality targets
         run: >-
           pnpm nx affected
-          -t lint,typecheck,test-unit,test-integration,test-e2e,build
+          -t llms-check,lint,typecheck,test-unit,test-integration,test-e2e,build
           --base="$NX_BASE"
           --head="$NX_HEAD"
           --nxBail

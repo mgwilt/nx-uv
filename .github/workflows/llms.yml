@@ -1,0 +1,58 @@
+name: LLM Context
+
+on:
+  pull_request:
+    paths:
+      - "README.md"
+      - "docs/**"
+      - "samples/README.md"
+      - "llms.txt"
+      - "llms-full.txt"
+      - "tools/generate-llms.cjs"
+      - "tools/check-llms.cjs"
+      - "tools/llms-sources.json"
+      - "package.json"
+      - "pnpm-lock.yaml"
+      - ".github/workflows/llms.yml"
+  push:
+    branches:
+      - main
+    paths:
+      - "README.md"
+      - "docs/**"
+      - "samples/README.md"
+      - "llms.txt"
+      - "llms-full.txt"
+      - "tools/generate-llms.cjs"
+      - "tools/check-llms.cjs"
+      - "tools/llms-sources.json"
+      - "package.json"
+      - "pnpm-lock.yaml"
+      - ".github/workflows/llms.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  llms-drift:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Verify llms artifacts are up to date
+        run: pnpm llms:check

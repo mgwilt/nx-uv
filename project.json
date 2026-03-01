@@ -95,16 +95,28 @@
         "command": "node dist/src/tools/coverage-badge.js --summary coverage/coverage-summary.json --output .github/badges/coverage.json"
       }
     },
+    "llms-generate": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "node tools/generate-llms.cjs"
+      }
+    },
+    "llms-check": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "node tools/check-llms.cjs"
+      }
+    },
     "quality-local": {
       "executor": "nx:run-commands",
       "options": {
-        "command": "pnpm nx run nx-uv:format-check && pnpm nx run-many -t lint,typecheck,test-unit,test-integration -p nx-uv --nxBail --outputStyle=static"
+        "command": "pnpm nx run nx-uv:format-check && pnpm nx run nx-uv:llms-check && pnpm nx run-many -t lint,typecheck,test-unit,test-integration -p nx-uv --nxBail --outputStyle=static"
       }
     },
     "quality-ci": {
       "executor": "nx:run-commands",
       "options": {
-        "command": "pnpm nx run nx-uv:format-check && pnpm nx run-many -t lint,typecheck,test-unit,test-integration,test-e2e,test-coverage,build -p nx-uv --nxBail --outputStyle=static"
+        "command": "pnpm nx run nx-uv:format-check && pnpm nx run nx-uv:llms-check && pnpm nx run-many -t lint,typecheck,test-unit,test-integration,test-e2e,test-coverage,build -p nx-uv --nxBail --outputStyle=static"
       }
     }
   }
