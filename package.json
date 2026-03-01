@@ -11,8 +11,8 @@
     "build": "nx run nx-uv:build",
     "lint": "nx run nx-uv:lint",
     "test": "nx run nx-uv:test",
-    "release:version": "nx release version",
-    "release:publish": "nx release publish",
+    "release:version": "nx release version --preid beta",
+    "release:publish": "nx release publish --tag beta",
     "commitlint": "commitlint --from=HEAD~1 --to=HEAD"
   },
   "repository": {

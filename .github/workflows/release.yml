@@ -41,21 +41,21 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-      - name: Version from conventional commits
-        run: pnpm nx release version --git-commit --git-tag --git-push
+      - name: Version prerelease from conventional commits
+        run: pnpm nx release version --preid beta --git-commit --git-tag --git-push
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Publish to npm (Trusted Publishing)
+      - name: Publish prerelease to npm (Trusted Publishing)
         if: ${{ env.NPM_ACCESS_TOKEN == '' }}
-        run: pnpm nx release publish
+        run: pnpm nx release publish --tag beta
         env:
           NPM_CONFIG_PROVENANCE: true
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Publish to npm (Token Fallback)
+      - name: Publish prerelease to npm (Token Fallback)
         if: ${{ env.NPM_ACCESS_TOKEN != '' }}
-        run: pnpm nx release publish
+        run: pnpm nx release publish --tag beta
         env:
           NODE_AUTH_TOKEN: ${{ env.NPM_ACCESS_TOKEN }}
           NPM_CONFIG_PROVENANCE: true
@@ -68,8 +68,8 @@ jobs:
           registry-url: https://npm.pkg.github.com/
           scope: '@mgwilt'
 
-      - name: Publish to GitHub Packages
-        run: pnpm nx release publish --registry=https://npm.pkg.github.com
+      - name: Publish prerelease to GitHub Packages
+        run: pnpm nx release publish --registry=https://npm.pkg.github.com --tag beta
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
