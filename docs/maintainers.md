@@ -6,6 +6,8 @@ This document covers repository operations and internal workflows. End-user usag
 
 - Build plugin:
   - `pnpm build`
+- Regenerate samples:
+  - `pnpm samples:generate`
 - Lint:
   - `pnpm lint`
 - Typecheck:
@@ -50,6 +52,8 @@ Coverage thresholds enforced in `vitest.coverage.config.mts`:
   - Push to `main`: full quality gate + coverage badge publish
 - `nightly.yml`
   - Scheduled full quality validation
+- `samples.yml`
+  - Regenerates `samples/` and fails on drift for generator-related PRs/pushes
 - `release.yml`
   - Manual prerelease flow (`beta` channel)
 - `commitlint.yml`
