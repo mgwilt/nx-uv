@@ -1,0 +1,9 @@
+{
+  "generators": {
+    "python-package": {
+      "factory": "./src/generators/python-package/python-package",
+      "schema": "./src/generators/python-package/schema.json",
+      "description": "Generate a Python package with uv and Nx targets."
+    }
+  }
+}

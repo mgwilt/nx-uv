@@ -1,0 +1,36 @@
+{
+  "$schema": "https://json-schema.org/schema",
+  "$id": "PythonPackage",
+  "title": "Python package generator",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Package name or full path for the new Python package.",
+      "$default": {
+        "$source": "argv",
+        "index": 0
+      },
+      "x-prompt": "What name would you like to use?"
+    },
+    "directory": {
+      "type": "string",
+      "description": "Directory for the package root. Defaults to packages/py."
+    },
+    "moduleName": {
+      "type": "string",
+      "description": "Python import module name. Defaults to a normalized package name."
+    },
+    "withTests": {
+      "type": "boolean",
+      "description": "Generate a default smoke test.",
+      "default": true
+    },
+    "tags": {
+      "type": "string",
+      "description": "Comma-delimited Nx project tags."
+    }
+  },
+  "required": ["name"],
+  "additionalProperties": false
+}
