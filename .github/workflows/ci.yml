@@ -6,11 +6,17 @@ on:
     branches:
       - main
 
+permissions:
+  contents: read
+
 jobs:
-  test:
+  affected:
+    if: ${{ github.event_name == 'pull_request' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - uses: pnpm/action-setup@v4
         with:
@@ -24,11 +30,82 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Lint
-        run: pnpm lint
+      - name: Derive base and head SHAs for Nx affected
+        uses: nrwl/nx-set-shas@v4
 
-      - name: Test
-        run: pnpm test
+      - name: Check formatting on affected files
+        run: pnpm nx format:check --base="$NX_BASE" --head="$NX_HEAD"
 
-      - name: Build
-        run: pnpm build
+      - name: Run affected quality targets
+        run: >-
+          pnpm nx affected
+          -t lint,typecheck,test-unit,test-integration,test-e2e,build
+          --base="$NX_BASE"
+          --head="$NX_HEAD"
+          --nxBail
+          --outputStyle=static
+
+  full:
+    if: ${{ github.event_name == 'push' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run full quality gate
+        run: pnpm quality:ci
+
+      - name: Generate coverage badge payload
+        run: pnpm coverage:badge
+
+      - name: Configure git author
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Publish coverage badge to badges branch
+        run: |
+          set -euo pipefail
+
+          BADGE_WORKTREE="$(mktemp -d)"
+          cleanup() {
+            git worktree remove --force "$BADGE_WORKTREE" >/dev/null 2>&1 || true
+            rm -rf "$BADGE_WORKTREE"
+          }
+          trap cleanup EXIT
+
+          if git ls-remote --exit-code --heads origin badges >/dev/null 2>&1; then
+            git fetch origin badges
+            git worktree add -B badges "$BADGE_WORKTREE" origin/badges
+          else
+            git worktree add -b badges "$BADGE_WORKTREE"
+          fi
+
+          mkdir -p "$BADGE_WORKTREE/.github/badges"
+          cp .github/badges/coverage.json "$BADGE_WORKTREE/.github/badges/coverage.json"
+
+          cd "$BADGE_WORKTREE"
+          git add .github/badges/coverage.json
+
+          if git diff --cached --quiet; then
+            echo "No coverage badge changes to publish."
+            exit 0
+          fi
+
+          git commit -m "ci(badges): update coverage badge"
+          git push origin HEAD:badges

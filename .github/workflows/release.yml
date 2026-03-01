@@ -32,9 +32,7 @@ jobs:
 
       - name: Verify package
         run: |
-          pnpm lint
-          pnpm test
-          pnpm build
+          pnpm quality:ci
 
       - name: Configure git author
         run: |
@@ -66,7 +64,7 @@ jobs:
         with:
           node-version: 24
           registry-url: https://npm.pkg.github.com/
-          scope: '@mgwilt'
+          scope: "@mgwilt"
 
       - name: Publish prerelease to GitHub Packages
         run: pnpm nx release publish --registry=https://npm.pkg.github.com --tag beta
