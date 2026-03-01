@@ -78,7 +78,14 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          TAG="v$(node -p "require('./package.json').version")"
+          TAG="$(git tag --points-at HEAD | sort -V | tail -n1)"
+          if [ -z "$TAG" ]; then
+            TAG="$(git tag --sort=-v:refname | head -n1)"
+          fi
+          if [ -z "$TAG" ]; then
+            echo "No release tag found in repository."
+            exit 1
+          fi
           if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" > /dev/null 2>&1; then
             echo "GitHub release already exists for $TAG"
           else
