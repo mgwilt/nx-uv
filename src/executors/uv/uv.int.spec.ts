@@ -1,20 +1,20 @@
-import { ExecutorContext } from '@nx/devkit';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { ExecutorContext } from "@nx/devkit";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const spawnSyncMock = vi.hoisted(() => vi.fn());
 
-vi.mock('child_process', () => ({
+vi.mock("child_process", () => ({
   spawnSync: spawnSyncMock,
 }));
 
-import executor from '../uv/uv';
-import { UvExecutorSchema } from '../uv/schema';
+import executor from "./uv";
+import { UvExecutorSchema } from "./schema";
 
 const context: ExecutorContext = {
-  root: '/repo',
-  cwd: '/repo',
+  root: "/repo",
+  cwd: "/repo",
   isVerbose: false,
-  projectName: 'shared',
+  projectName: "shared",
   projectGraph: {
     nodes: {},
     dependencies: {},
@@ -23,9 +23,9 @@ const context: ExecutorContext = {
     version: 2,
     projects: {
       shared: {
-        root: 'packages/py/shared',
-        sourceRoot: 'packages/py/shared/src',
-        projectType: 'library',
+        root: "packages/py/shared",
+        sourceRoot: "packages/py/shared/src",
+        projectType: "library",
         targets: {},
       },
     },
@@ -33,23 +33,23 @@ const context: ExecutorContext = {
   nxJsonConfiguration: {},
 };
 
-describe('uv executor', () => {
+describe("uv executor", () => {
   beforeEach(() => {
     spawnSyncMock.mockReset();
   });
 
-  it('fails version check for unsupported uv versions', async () => {
+  it("fails version check for unsupported uv versions", async () => {
     spawnSyncMock.mockReturnValue({
       status: 0,
-      stdout: 'uv 1.0.0\n',
-      stderr: '',
+      stdout: "uv 1.0.0\n",
+      stderr: "",
       pid: 1,
       output: [],
       signal: null,
     });
 
     const options: UvExecutorSchema = {
-      args: ['help'],
+      args: ["help"],
     };
 
     const result = await executor(options, context);
@@ -58,13 +58,13 @@ describe('uv executor', () => {
     expect(spawnSyncMock).toHaveBeenCalledTimes(1);
   });
 
-  it('runs universal uv args', async () => {
+  it("runs universal uv args", async () => {
     spawnSyncMock.mockImplementation((_command: string, args: string[]) => {
-      if (args[0] === '--version') {
+      if (args[0] === "--version") {
         return {
           status: 0,
-          stdout: 'uv 0.9.29\n',
-          stderr: '',
+          stdout: "uv 0.9.29\n",
+          stderr: "",
           pid: 1,
           output: [],
           signal: null,
@@ -73,8 +73,8 @@ describe('uv executor', () => {
 
       return {
         status: 0,
-        stdout: '',
-        stderr: '',
+        stdout: "",
+        stderr: "",
         pid: 1,
         output: [],
         signal: null,
@@ -82,8 +82,8 @@ describe('uv executor', () => {
     });
 
     const options: UvExecutorSchema = {
-      args: ['cache', 'size'],
-      cwd: 'packages/py/shared',
+      args: ["cache", "size"],
+      cwd: "packages/py/shared",
     };
 
     const result = await executor(options, context);
@@ -91,9 +91,21 @@ describe('uv executor', () => {
     expect(result.success).toBe(true);
     expect(spawnSyncMock).toHaveBeenNthCalledWith(
       2,
-      'uv',
-      ['cache', 'size'],
-      expect.objectContaining({ cwd: '/repo/packages/py/shared' }),
+      "uv",
+      ["cache", "size"],
+      expect.objectContaining({ cwd: "/repo/packages/py/shared" }),
     );
+  });
+
+  it("fails when no args are provided", async () => {
+    const result = await executor(
+      {
+        args: [],
+      },
+      context,
+    );
+
+    expect(result.success).toBe(false);
+    expect(spawnSyncMock).not.toHaveBeenCalled();
   });
 });
