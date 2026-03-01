@@ -70,6 +70,31 @@ pnpm nx g @mgwilt/nx-uv:integration --template=fastapi --project=api
 pnpm nx g @mgwilt/nx-uv:integration --template=github
 ```
 
+Expected file tree (key files) after step 3:
+
+```text
+acme-monorepo/
+├── nx.json
+├── package.json
+├── pyproject.toml
+├── .github/
+│   └── workflows/
+│       └── uv-ci.yml
+└── packages/
+    └── py/
+        └── api/
+            ├── README.md
+            ├── pyproject.toml
+            ├── main.py
+            ├── Dockerfile.fastapi
+            ├── src/
+            │   └── api/
+            │       ├── __init__.py
+            │       └── main.py
+            └── tests/
+                └── test_smoke.py
+```
+
 4. Add runtime and dev dependencies with [uv](https://docs.astral.sh/uv/):
 
 ```bash
