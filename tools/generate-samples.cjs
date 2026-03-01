@@ -254,7 +254,7 @@ function renderSampleReadme(sample) {
     `pnpm create nx-workspace@latest ${sample.workspaceDir} --preset=ts --packageManager=pnpm --nxCloud=skip --interactive=false`,
     `cd ${sample.workspaceDir}`,
     "pnpm add -D @mgwilt/nx-uv@beta",
-    `pnpm nx g @mgwilt/nx-uv:workspace --name=${sample.workspaceName} --membersGlob=packages/py/*`,
+    `pnpm nx g @mgwilt/nx-uv:workspace --name=${sample.workspaceName} --membersGlob='packages/py/*'`,
     `pnpm nx g @mgwilt/nx-uv:project ${sample.project.name} --projectType=${sample.project.projectType} --directory=${sample.project.directory}`,
     ...sample.integrations.map((template) =>
       WORKSPACE_LEVEL_TEMPLATES.has(template)
