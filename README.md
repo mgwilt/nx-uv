@@ -1,41 +1,52 @@
 # @mgwilt/nx-uv
 
-Nx plugin for integrating [uv](https://docs.astral.sh/uv/) workflows into an Nx monorepo.
+Nx plugin for running [uv](https://docs.astral.sh/uv/) workflows in Nx monorepos.
 
 [![CI](https://github.com/mgwilt/nx-uv/actions/workflows/ci.yml/badge.svg)](https://github.com/mgwilt/nx-uv/actions/workflows/ci.yml)
 [![Coverage](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/mgwilt/nx-uv/badges/.github/badges/coverage.json)](https://github.com/mgwilt/nx-uv/blob/badges/.github/badges/coverage.json)
 [![npm beta](https://img.shields.io/npm/v/%40mgwilt%2Fnx-uv/beta?label=npm%20beta&cacheSeconds=300)](https://www.npmjs.com/package/@mgwilt/nx-uv?activeTab=versions)
 
-## Coverage model
+## When to use this plugin
 
-The plugin uses a hybrid model:
+- Run uv commands through Nx targets instead of ad-hoc shell scripts.
+- Infer useful uv targets from existing `pyproject.toml` files.
+- Scaffold uv-ready Python projects and workspace config.
+- Keep Python work in the same task graph, caching, and CI flow as the rest of your monorepo.
 
-- Typed executor families for major uv command groups
-- Universal executor fallback for complete command passthrough
-- Inferred targets via Nx plugin `createNodesV2` from `pyproject.toml`
-- Explicit generators for workspace/project scaffolding, conversion, migration, and integrations
+## Tools
 
-## Executors
+- Executors for uv command families:
+  - `@mgwilt/nx-uv:project`
+  - `@mgwilt/nx-uv:uv`
+  - `@mgwilt/nx-uv:pip`
+  - `@mgwilt/nx-uv:tool`
+  - `@mgwilt/nx-uv:python`
+  - `@mgwilt/nx-uv:auth`
+  - `@mgwilt/nx-uv:cache`
+  - `@mgwilt/nx-uv:self`
+- Generators:
+  - `@mgwilt/nx-uv:workspace`
+  - `@mgwilt/nx-uv:project`
+  - `@mgwilt/nx-uv:integration`
+  - `@mgwilt/nx-uv:convert`
+- Nx plugin inference (`createNodesV2`) for `pyproject.toml`.
 
-- `@mgwilt/nx-uv:uv` universal uv passthrough
-- `@mgwilt/nx-uv:project` top-level project flows (`run`, `sync`, `lock`, `build`, etc.)
-- `@mgwilt/nx-uv:pip` pip interface subcommands
-- `@mgwilt/nx-uv:tool` tool management subcommands
-- `@mgwilt/nx-uv:python` Python management subcommands
-- `@mgwilt/nx-uv:auth` auth subcommands
-- `@mgwilt/nx-uv:cache` cache subcommands
-- `@mgwilt/nx-uv:self` self-management subcommands
+## Install
 
-## Generators
+Prerequisites:
 
-- `@mgwilt/nx-uv:workspace` configure root uv workspace + Nx inference plugin options
-- `@mgwilt/nx-uv:project` generate Python app/lib/script projects with uv targets
-- `@mgwilt/nx-uv:convert` convert existing projects to redesigned executors/targets
-- `@mgwilt/nx-uv:integration` scaffold integration templates
+- Nx workspace
+- `uv` installed and available on `PATH`
 
-## Inference plugin
+Install the plugin:
 
-Add plugin entry in `nx.json`:
+```bash
+pnpm add -D @mgwilt/nx-uv
+```
+
+## Quick start
+
+1. Add the plugin to `nx.json`:
 
 ```json
 {
@@ -52,11 +63,33 @@ Add plugin entry in `nx.json`:
 }
 ```
 
-Inferred projects are discovered via `**/pyproject.toml`.
+2. (Optional, recommended for new repos) Initialize uv workspace config:
+
+```bash
+pnpm nx g @mgwilt/nx-uv:workspace --name=acme
+```
+
+3. Generate a Python project wired for uv + Nx:
+
+```bash
+pnpm nx g @mgwilt/nx-uv:project services/api --projectType=app
+```
+
+4. Run uv-backed targets:
+
+```bash
+pnpm nx run api:sync
+pnpm nx run api:test
+pnpm nx run api:build
+```
+
+## Existing Python projects
+
+If your repo already has `pyproject.toml` files, the plugin can infer targets (for example `uv:sync`, `uv:run`, `uv:test`) based on your configured `targetPrefix` and inference preset.
 
 ## Integration templates
 
-`integration` generator templates:
+Use the integration generator to scaffold common uv integration files:
 
 - `alternative-indexes`
 - `aws-lambda`
@@ -71,29 +104,18 @@ Inferred projects are discovered via `**/pyproject.toml`.
 - `pre-commit`
 - `pytorch`
 
-## uv compatibility
+Example:
 
-The executor runtime enforces uv `0.9.x` by default. Set `skipVersionCheck=true` to bypass.
+```bash
+pnpm nx g @mgwilt/nx-uv:integration --template=docker --project=api
+```
 
-## Quality gates
+## Compatibility and versioning
 
-- `pnpm quality:local` runs format check, lint, typecheck, and unit/integration tests.
-- `pnpm quality:ci` runs the full strict gate: format check, lint, typecheck, unit/integration/e2e tests, coverage thresholds, and build.
-- Coverage thresholds are enforced at: lines `95`, functions `95`, statements `95`, branches `90`.
-- Coverage badge JSON is generated from `coverage/coverage-summary.json` and written to `.github/badges/coverage.json`.
+- Runtime uv compatibility check targets `uv 0.9.x` by default.
+- This package is pre-v1 and published on the npm `beta` dist-tag.
 
-## Hooks
+## Additional docs
 
-- Lefthook is installed via `prepare` (`pnpm install` auto-installs hooks).
-- `pre-commit` enforces format, lint, typecheck, unit, and integration tests.
-- `pre-push` enforces the full `quality:ci` gate.
-
-## CI model
-
-- Pull requests run `nx affected` checks using base/head SHAs.
-- Pushes to `main` run full quality gates and update the coverage badge on the `badges` branch.
-- Nightly workflow runs full quality gates for drift detection.
-
-## Release channel
-
-Automated releases are published as npm prereleases using the `beta` dist-tag.
+- [Documentation index](docs/index.md)
+- [Maintainer guide (quality gates, CI, release)](docs/maintainers.md)
