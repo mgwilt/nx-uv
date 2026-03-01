@@ -25,7 +25,10 @@
     "env": { "type": "object", "additionalProperties": { "type": "string" } },
     "extraArgs": { "type": "array", "items": { "type": "string" } },
     "skipVersionCheck": { "type": "boolean", "default": false },
-    "command": { "type": "string", "enum": ["login", "logout", "token", "dir"] },
+    "command": {
+      "type": "string",
+      "enum": ["login", "logout", "token", "dir"]
+    },
     "commandArgs": { "type": "array", "items": { "type": "string" } }
   },
   "required": ["command"],

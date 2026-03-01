@@ -27,7 +27,17 @@
     "skipVersionCheck": { "type": "boolean", "default": false },
     "command": {
       "type": "string",
-      "enum": ["compile", "sync", "install", "uninstall", "freeze", "list", "show", "tree", "check"]
+      "enum": [
+        "compile",
+        "sync",
+        "install",
+        "uninstall",
+        "freeze",
+        "list",
+        "show",
+        "tree",
+        "check"
+      ]
     },
     "commandArgs": { "type": "array", "items": { "type": "string" } }
   },

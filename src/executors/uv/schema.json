@@ -5,10 +5,16 @@
   "description": "Run any uv command with full argument passthrough.",
   "type": "object",
   "properties": {
-    "cwd": { "type": "string", "description": "Working directory relative to the workspace root." },
+    "cwd": {
+      "type": "string",
+      "description": "Working directory relative to the workspace root."
+    },
     "directory": { "type": "string", "description": "Pass --directory to uv." },
     "project": { "type": "string", "description": "Pass --project to uv." },
-    "configFile": { "type": "string", "description": "Pass --config-file to uv." },
+    "configFile": {
+      "type": "string",
+      "description": "Pass --config-file to uv."
+    },
     "noConfig": { "type": "boolean", "default": false },
     "offline": { "type": "boolean", "default": false },
     "noProgress": { "type": "boolean", "default": false },

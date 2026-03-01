@@ -1,6 +1,6 @@
-import { PromiseExecutor } from '@nx/devkit';
-import { runUvCommand } from '../shared/run-uv';
-import { ProjectExecutorSchema } from './schema';
+import { PromiseExecutor } from "@nx/devkit";
+import { runUvCommand } from "../shared/run-uv";
+import { ProjectExecutorSchema } from "./schema";
 
 const projectExecutor: PromiseExecutor<ProjectExecutorSchema> = async (
   options,

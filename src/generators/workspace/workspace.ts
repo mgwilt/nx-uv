@@ -1,21 +1,16 @@
-import {
-  formatFiles,
-  names,
-  Tree,
-  workspaceRoot,
-} from '@nx/devkit';
-import * as path from 'path';
-import { ensureNxUvPlugin } from '../shared';
-import { WorkspaceGeneratorSchema } from './schema';
+import { formatFiles, names, Tree, workspaceRoot } from "@nx/devkit";
+import * as path from "path";
+import { ensureNxUvPlugin } from "../shared";
+import { WorkspaceGeneratorSchema } from "./schema";
 
 export async function workspaceGenerator(
   tree: Tree,
   options: WorkspaceGeneratorSchema,
 ) {
-  const membersGlob = options.membersGlob?.trim() || 'packages/py/*';
+  const membersGlob = options.membersGlob?.trim() || "packages/py/*";
   const exclude = options.exclude
     ? options.exclude
-        .split(',')
+        .split(",")
         .map((value) => value.trim())
         .filter(Boolean)
     : [];
@@ -45,7 +40,7 @@ function ensureRootPyproject(
     exclude: string[];
   },
 ): void {
-  const rootPyproject = 'pyproject.toml';
+  const rootPyproject = "pyproject.toml";
 
   if (!tree.exists(rootPyproject)) {
     const normalizedName = config.name
@@ -53,44 +48,44 @@ function ensureRootPyproject(
       : names(path.basename(workspaceRoot)).fileName;
 
     const toml = [
-      '[project]',
+      "[project]",
       `name = "${normalizedName}"`,
       'version = "0.1.0"',
       'description = "uv workspace root"',
       'requires-python = ">=3.11"',
-      'dependencies = []',
-      '',
-      '[tool.uv.workspace]',
+      "dependencies = []",
+      "",
+      "[tool.uv.workspace]",
       `members = ["${config.membersGlob}"]`,
     ];
 
     if (config.exclude.length) {
-      const excludes = config.exclude.map((entry) => `"${entry}"`).join(', ');
+      const excludes = config.exclude.map((entry) => `"${entry}"`).join(", ");
       toml.push(`exclude = [${excludes}]`);
     }
 
-    tree.write(rootPyproject, `${toml.join('\n')}\n`);
+    tree.write(rootPyproject, `${toml.join("\n")}\n`);
     return;
   }
 
-  const current = tree.read(rootPyproject, 'utf-8') ?? '';
+  const current = tree.read(rootPyproject, "utf-8") ?? "";
 
-  if (current.includes('[tool.uv.workspace]')) {
+  if (current.includes("[tool.uv.workspace]")) {
     return;
   }
 
   const lines = [
-    '',
-    '[tool.uv.workspace]',
+    "",
+    "[tool.uv.workspace]",
     `members = ["${config.membersGlob}"]`,
   ];
 
   if (config.exclude.length) {
-    const excludes = config.exclude.map((entry) => `"${entry}"`).join(', ');
+    const excludes = config.exclude.map((entry) => `"${entry}"`).join(", ");
     lines.push(`exclude = [${excludes}]`);
   }
 
-  tree.write(rootPyproject, `${current.trimEnd()}\n${lines.join('\n')}\n`);
+  tree.write(rootPyproject, `${current.trimEnd()}\n${lines.join("\n")}\n`);
 }
 
 export default workspaceGenerator;

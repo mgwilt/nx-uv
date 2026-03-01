@@ -3,9 +3,9 @@ import {
   readProjectConfiguration,
   Tree,
   workspaceRoot,
-} from '@nx/devkit';
-import * as path from 'path';
-import { IntegrationGeneratorSchema, IntegrationTemplate } from './schema';
+} from "@nx/devkit";
+import * as path from "path";
+import { IntegrationGeneratorSchema, IntegrationTemplate } from "./schema";
 
 type GeneratedFile = {
   path: string;
@@ -32,7 +32,10 @@ export async function integrationGenerator(
   }
 }
 
-function resolveBaseDirectory(tree: Tree, options: IntegrationGeneratorSchema): string {
+function resolveBaseDirectory(
+  tree: Tree,
+  options: IntegrationGeneratorSchema,
+): string {
   if (options.project) {
     const project = readProjectConfiguration(tree, options.project);
     return project.root;
@@ -41,10 +44,10 @@ function resolveBaseDirectory(tree: Tree, options: IntegrationGeneratorSchema): 
   if (options.directory) {
     const absolute = path.resolve(workspaceRoot, options.directory);
     const relative = path.relative(workspaceRoot, absolute);
-    return relative || '.';
+    return relative || ".";
   }
 
-  return '.';
+  return ".";
 }
 
 function filesForTemplate(
@@ -52,13 +55,13 @@ function filesForTemplate(
   baseDir: string,
 ): GeneratedFile[] {
   const inBase = (targetPath: string) =>
-    baseDir === '.' ? targetPath : path.posix.join(baseDir, targetPath);
+    baseDir === "." ? targetPath : path.posix.join(baseDir, targetPath);
 
   switch (template) {
-    case 'github':
+    case "github":
       return [
         {
-          path: '.github/workflows/uv-ci.yml',
+          path: ".github/workflows/uv-ci.yml",
           content: `name: uv-ci
 
 on:
@@ -79,10 +82,10 @@ jobs:
 `,
         },
       ];
-    case 'gitlab':
+    case "gitlab":
       return [
         {
-          path: '.gitlab-ci.uv.yml',
+          path: ".gitlab-ci.uv.yml",
           content: `stages:
   - test
 
@@ -95,10 +98,10 @@ test:uv:
 `,
         },
       ];
-    case 'docker':
+    case "docker":
       return [
         {
-          path: inBase('Dockerfile'),
+          path: inBase("Dockerfile"),
           content: `FROM ghcr.io/astral-sh/uv:python3.12-bookworm-slim
 WORKDIR /app
 COPY pyproject.toml uv.lock* ./
@@ -108,10 +111,10 @@ CMD ["uv", "run", "--", "python", "-m", "main"]
 `,
         },
       ];
-    case 'aws-lambda':
+    case "aws-lambda":
       return [
         {
-          path: inBase('Dockerfile.lambda'),
+          path: inBase("Dockerfile.lambda"),
           content: `FROM public.ecr.aws/lambda/python:3.12
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 WORKDIR /var/task
@@ -122,10 +125,10 @@ CMD ["main.handler"]
 `,
         },
       ];
-    case 'dependency-bots':
+    case "dependency-bots":
       return [
         {
-          path: 'renovate.json',
+          path: "renovate.json",
           content: `{
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": ["config:recommended"],
@@ -134,7 +137,7 @@ CMD ["main.handler"]
 `,
         },
         {
-          path: '.github/dependabot.yml',
+          path: ".github/dependabot.yml",
           content: `version: 2
 updates:
   - package-ecosystem: "github-actions"
@@ -144,10 +147,10 @@ updates:
 `,
         },
       ];
-    case 'pre-commit':
+    case "pre-commit":
       return [
         {
-          path: '.pre-commit-config.yaml',
+          path: ".pre-commit-config.yaml",
           content: `repos:
   - repo: local
     hooks:
@@ -163,10 +166,10 @@ updates:
 `,
         },
       ];
-    case 'jupyter':
+    case "jupyter":
       return [
         {
-          path: inBase('scripts/setup-jupyter-kernel.sh'),
+          path: inBase("scripts/setup-jupyter-kernel.sh"),
           content: `#!/usr/bin/env bash
 set -euo pipefail
 uv add --dev ipykernel
@@ -174,10 +177,10 @@ uv run -- python -m ipykernel install --user --name uv-kernel
 `,
         },
       ];
-    case 'marimo':
+    case "marimo":
       return [
         {
-          path: inBase('notebooks/example.marimo.py'),
+          path: inBase("notebooks/example.marimo.py"),
           content: `# /// script
 # requires-python = ">=3.11"
 # dependencies = ["marimo"]
@@ -192,10 +195,10 @@ if __name__ == "__main__":
 `,
         },
       ];
-    case 'pytorch':
+    case "pytorch":
       return [
         {
-          path: inBase('uv.pytorch.toml.snippet'),
+          path: inBase("uv.pytorch.toml.snippet"),
           content: `[[tool.uv.index]]
 name = "pytorch"
 url = "https://download.pytorch.org/whl/cpu"
@@ -206,10 +209,10 @@ torch = { index = "pytorch" }
 `,
         },
       ];
-    case 'fastapi':
+    case "fastapi":
       return [
         {
-          path: inBase('main.py'),
+          path: inBase("main.py"),
           content: `from fastapi import FastAPI
 
 app = FastAPI()
@@ -221,7 +224,7 @@ def root() -> dict[str, str]:
 `,
         },
         {
-          path: inBase('Dockerfile.fastapi'),
+          path: inBase("Dockerfile.fastapi"),
           content: `FROM ghcr.io/astral-sh/uv:python3.12-bookworm-slim
 WORKDIR /app
 COPY . .
@@ -230,10 +233,10 @@ CMD ["uv", "run", "--", "uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8
 `,
         },
       ];
-    case 'alternative-indexes':
+    case "alternative-indexes":
       return [
         {
-          path: inBase('uv.indexes.toml.snippet'),
+          path: inBase("uv.indexes.toml.snippet"),
           content: `[[tool.uv.index]]
 name = "internal"
 url = "https://example.com/simple"
@@ -241,10 +244,10 @@ default = true
 `,
         },
       ];
-    case 'coiled':
+    case "coiled":
       return [
         {
-          path: inBase('scripts/coiled-example.py'),
+          path: inBase("scripts/coiled-example.py"),
           content: `# /// script
 # requires-python = ">=3.11"
 # dependencies = ["coiled", "pandas", "pyarrow"]

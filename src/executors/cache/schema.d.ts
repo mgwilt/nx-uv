@@ -1,6 +1,6 @@
-import { UvBaseExecutorSchema } from '../shared/options';
+import { UvBaseExecutorSchema } from "../shared/options";
 
-export type UvCacheCommand = 'clean' | 'prune' | 'dir' | 'size';
+export type UvCacheCommand = "clean" | "prune" | "dir" | "size";
 
 export interface CacheExecutorSchema extends UvBaseExecutorSchema {
   command: UvCacheCommand;

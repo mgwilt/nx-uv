@@ -5,17 +5,17 @@ import {
   Tree,
   updateJson,
   workspaceRoot,
-} from '@nx/devkit';
-import * as path from 'path';
+} from "@nx/devkit";
+import * as path from "path";
 
-export type InferencePreset = 'minimal' | 'standard' | 'full';
+export type InferencePreset = "minimal" | "standard" | "full";
 
 export function normalizePythonProjectName(name: string): string {
   return names(name).fileName;
 }
 
 export function toModuleName(name: string): string {
-  return normalizePythonProjectName(name).replace(/-/g, '_');
+  return normalizePythonProjectName(name).replace(/-/g, "_");
 }
 
 export function parseTags(tags: string | undefined): string[] {
@@ -24,72 +24,74 @@ export function parseTags(tags: string | undefined): string[] {
   }
 
   return tags
-    .split(',')
+    .split(",")
     .map((tag) => tag.trim())
     .filter(Boolean);
 }
 
-export function defaultUvTargets(projectRoot: string): Record<string, TargetConfiguration> {
+export function defaultUvTargets(
+  projectRoot: string,
+): Record<string, TargetConfiguration> {
   const cwd = projectRoot;
 
   return {
     sync: {
-      executor: '@mgwilt/nx-uv:project',
+      executor: "@mgwilt/nx-uv:project",
       options: {
         cwd,
-        command: 'sync',
+        command: "sync",
       },
     },
     lock: {
-      executor: '@mgwilt/nx-uv:project',
+      executor: "@mgwilt/nx-uv:project",
       options: {
         cwd,
-        command: 'lock',
+        command: "lock",
       },
     },
     tree: {
-      executor: '@mgwilt/nx-uv:project',
+      executor: "@mgwilt/nx-uv:project",
       options: {
         cwd,
-        command: 'tree',
+        command: "tree",
       },
     },
     run: {
-      executor: '@mgwilt/nx-uv:project',
+      executor: "@mgwilt/nx-uv:project",
       options: {
         cwd,
-        command: 'run',
-        commandArgs: ['--', 'python', '-V'],
+        command: "run",
+        commandArgs: ["--", "python", "-V"],
       },
     },
     test: {
-      executor: '@mgwilt/nx-uv:project',
+      executor: "@mgwilt/nx-uv:project",
       options: {
         cwd,
-        command: 'run',
-        commandArgs: ['--', 'pytest', '-q'],
+        command: "run",
+        commandArgs: ["--", "pytest", "-q"],
       },
     },
     lint: {
-      executor: '@mgwilt/nx-uv:project',
+      executor: "@mgwilt/nx-uv:project",
       options: {
         cwd,
-        command: 'run',
-        commandArgs: ['--', 'ruff', 'check', '.'],
+        command: "run",
+        commandArgs: ["--", "ruff", "check", "."],
       },
     },
     format: {
-      executor: '@mgwilt/nx-uv:project',
+      executor: "@mgwilt/nx-uv:project",
       options: {
         cwd,
-        command: 'format',
+        command: "format",
       },
     },
     build: {
-      executor: '@mgwilt/nx-uv:project',
+      executor: "@mgwilt/nx-uv:project",
       options: {
         cwd,
-        command: 'build',
+        command: "build",
       },
     },
   };
@@ -103,25 +105,25 @@ export function ensureNxUvPlugin(
     includeGlobalTargets?: boolean;
   },
 ): void {
-  if (!tree.exists('nx.json')) {
+  if (!tree.exists("nx.json")) {
     return;
   }
 
-  updateJson(tree, 'nx.json', (json) => {
+  updateJson(tree, "nx.json", (json) => {
     const plugins = Array.isArray(json.plugins) ? [...json.plugins] : [];
     const existingIndex = plugins.findIndex((entry) => {
-      if (typeof entry === 'string') {
-        return entry === '@mgwilt/nx-uv';
+      if (typeof entry === "string") {
+        return entry === "@mgwilt/nx-uv";
       }
 
-      return entry?.plugin === '@mgwilt/nx-uv';
+      return entry?.plugin === "@mgwilt/nx-uv";
     });
 
     const pluginEntry = {
-      plugin: '@mgwilt/nx-uv',
+      plugin: "@mgwilt/nx-uv",
       options: {
-        targetPrefix: options.targetPrefix ?? 'uv:',
-        inferencePreset: options.inferencePreset ?? 'standard',
+        targetPrefix: options.targetPrefix ?? "uv:",
+        inferencePreset: options.inferencePreset ?? "standard",
         includeGlobalTargets: options.includeGlobalTargets ?? false,
       },
     };
@@ -130,7 +132,7 @@ export function ensureNxUvPlugin(
       plugins.push(pluginEntry);
     } else {
       const current = plugins[existingIndex];
-      if (typeof current === 'string') {
+      if (typeof current === "string") {
         plugins[existingIndex] = pluginEntry;
       } else {
         plugins[existingIndex] = {
@@ -152,15 +154,15 @@ export function ensureNxUvPlugin(
 
 export function relativeToWorkspaceRoot(targetPath: string): string {
   const absoluteTarget = path.resolve(workspaceRoot, targetPath);
-  return path.relative(workspaceRoot, absoluteTarget) || '.';
+  return path.relative(workspaceRoot, absoluteTarget) || ".";
 }
 
 export function readNxProjectMap(tree: Tree): Record<string, { root: string }> {
-  if (!tree.exists('nx.json')) {
+  if (!tree.exists("nx.json")) {
     return {};
   }
 
-  const nxJson = readJson(tree, 'nx.json');
+  const nxJson = readJson(tree, "nx.json");
   const projects = (nxJson.projects ?? {}) as Record<string, { root: string }>;
   return projects;
 }

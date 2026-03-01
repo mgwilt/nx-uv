@@ -1,15 +1,13 @@
-import { ExecutorContext, logger } from '@nx/devkit';
-import * as childProcess from 'child_process';
-import * as path from 'path';
-import { UvBaseExecutorSchema } from './options';
+import { ExecutorContext, logger } from "@nx/devkit";
+import * as childProcess from "child_process";
+import * as path from "path";
+import { UvBaseExecutorSchema } from "./options";
 
 const SUPPORTED_UV_VERSION = /^0\.9\./;
 
 type UvCommandResult = { success: boolean };
 
-type VersionCheckResult =
-  | { ok: true }
-  | { ok: false; message: string };
+type VersionCheckResult = { ok: true } | { ok: false; message: string };
 
 export function resolveWorkingDirectory(
   options: UvBaseExecutorSchema,
@@ -21,7 +19,8 @@ export function resolveWorkingDirectory(
 
   const projectName = context.projectName;
   const projectRoot =
-    projectName && context.projectsConfigurations?.projects?.[projectName]?.root;
+    projectName &&
+    context.projectsConfigurations?.projects?.[projectName]?.root;
 
   if (projectRoot) {
     return resolvePath(context.root, projectRoot);
@@ -51,16 +50,16 @@ export function runUvCommand(
     ...(options.extraArgs ?? []),
   ];
 
-  logger.info(`Running: uv ${uvArgs.join(' ')}`);
+  logger.info(`Running: uv ${uvArgs.join(" ")}`);
   logger.info(`Working directory: ${cwd}`);
 
-  const result = childProcess.spawnSync('uv', uvArgs, {
+  const result = childProcess.spawnSync("uv", uvArgs, {
     cwd,
     env: {
       ...process.env,
       ...normalizeEnv(options.env),
     },
-    stdio: 'inherit',
+    stdio: "inherit",
   });
 
   if (result.error) {
@@ -78,77 +77,77 @@ function buildGlobalArgs(
   const args: string[] = [];
 
   if (options.directory) {
-    args.push('--directory', resolvePath(workspaceRoot, options.directory));
+    args.push("--directory", resolvePath(workspaceRoot, options.directory));
   }
 
   if (options.project) {
-    args.push('--project', resolvePath(workspaceRoot, options.project));
+    args.push("--project", resolvePath(workspaceRoot, options.project));
   }
 
   if (options.configFile) {
-    args.push('--config-file', resolvePath(workspaceRoot, options.configFile));
+    args.push("--config-file", resolvePath(workspaceRoot, options.configFile));
   }
 
   if (options.noConfig) {
-    args.push('--no-config');
+    args.push("--no-config");
   }
 
   if (options.offline) {
-    args.push('--offline');
+    args.push("--offline");
   }
 
   if (options.noProgress) {
-    args.push('--no-progress');
+    args.push("--no-progress");
   }
 
   if (options.quiet) {
-    args.push('--quiet');
+    args.push("--quiet");
   }
 
   if (options.verbose) {
-    args.push('--verbose');
+    args.push("--verbose");
   }
 
   if (options.color) {
-    args.push('--color', options.color);
+    args.push("--color", options.color);
   }
 
   if (options.nativeTls) {
-    args.push('--native-tls');
+    args.push("--native-tls");
   }
 
   if (options.cacheDir) {
-    args.push('--cache-dir', resolvePath(workspaceRoot, options.cacheDir));
+    args.push("--cache-dir", resolvePath(workspaceRoot, options.cacheDir));
   }
 
   if (options.noCache) {
-    args.push('--no-cache');
+    args.push("--no-cache");
   }
 
   if (options.managedPython) {
-    args.push('--managed-python');
+    args.push("--managed-python");
   }
 
   if (options.noManagedPython) {
-    args.push('--no-managed-python');
+    args.push("--no-managed-python");
   }
 
   if (options.noPythonDownloads) {
-    args.push('--no-python-downloads');
+    args.push("--no-python-downloads");
   }
 
   if (options.allowInsecureHost?.length) {
     for (const host of options.allowInsecureHost) {
-      args.push('--allow-insecure-host', host);
+      args.push("--allow-insecure-host", host);
     }
   }
 
   return args;
 }
 
-function normalizeEnv(env: Record<string, string> | undefined):
-  | Record<string, string>
-  | undefined {
+function normalizeEnv(
+  env: Record<string, string> | undefined,
+): Record<string, string> | undefined {
   if (!env) {
     return undefined;
   }
@@ -159,11 +158,11 @@ function normalizeEnv(env: Record<string, string> | undefined):
 }
 
 function assertUvVersion(cwd: string): VersionCheckResult {
-  const result = childProcess.spawnSync('uv', ['--version'], {
+  const result = childProcess.spawnSync("uv", ["--version"], {
     cwd,
     env: process.env,
-    stdio: 'pipe',
-    encoding: 'utf-8',
+    stdio: "pipe",
+    encoding: "utf-8",
   });
 
   if (result.error) {
@@ -176,11 +175,12 @@ function assertUvVersion(cwd: string): VersionCheckResult {
   if (result.status !== 0) {
     return {
       ok: false,
-      message: 'Unable to determine uv version. Ensure uv is installed and on PATH.',
+      message:
+        "Unable to determine uv version. Ensure uv is installed and on PATH.",
     };
   }
 
-  const version = parseUvVersion(result.stdout?.toString() ?? '');
+  const version = parseUvVersion(result.stdout?.toString() ?? "");
 
   if (!version) {
     return {

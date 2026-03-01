@@ -1,4 +1,4 @@
-import { InferencePreset } from '../shared';
+import { InferencePreset } from "../shared";
 
 export interface WorkspaceGeneratorSchema {
   name?: string;

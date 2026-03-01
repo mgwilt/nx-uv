@@ -1,4 +1,4 @@
-export type PythonProjectType = 'app' | 'lib' | 'script';
+export type PythonProjectType = "app" | "lib" | "script";
 
 export interface ProjectGeneratorSchema {
   name: string;

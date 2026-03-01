@@ -27,7 +27,16 @@
     "skipVersionCheck": { "type": "boolean", "default": false },
     "command": {
       "type": "string",
-      "enum": ["list", "install", "upgrade", "find", "pin", "dir", "uninstall", "update-shell"]
+      "enum": [
+        "list",
+        "install",
+        "upgrade",
+        "find",
+        "pin",
+        "dir",
+        "uninstall",
+        "update-shell"
+      ]
     },
     "commandArgs": { "type": "array", "items": { "type": "string" } }
   },

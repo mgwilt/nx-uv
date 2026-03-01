@@ -1,4 +1,4 @@
-export type UvColorChoice = 'auto' | 'always' | 'never';
+export type UvColorChoice = "auto" | "always" | "never";
 
 export interface UvBaseExecutorSchema {
   cwd?: string;

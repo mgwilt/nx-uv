@@ -4,11 +4,14 @@ import {
   readProjectConfiguration,
   Tree,
   updateProjectConfiguration,
-} from '@nx/devkit';
-import { defaultUvTargets, ensureNxUvPlugin } from '../shared';
-import { ConvertGeneratorSchema } from './schema';
+} from "@nx/devkit";
+import { defaultUvTargets, ensureNxUvPlugin } from "../shared";
+import { ConvertGeneratorSchema } from "./schema";
 
-export async function convertGenerator(tree: Tree, options: ConvertGeneratorSchema) {
+export async function convertGenerator(
+  tree: Tree,
+  options: ConvertGeneratorSchema,
+) {
   const projects = getProjects(tree);
 
   for (const [projectName, projectConfig] of projects) {
@@ -31,12 +34,12 @@ export async function convertGenerator(tree: Tree, options: ConvertGeneratorSche
       }
     }
 
-    if (!currentTargets['uv']) {
-      currentTargets['uv'] = {
-        executor: '@mgwilt/nx-uv:uv',
+    if (!currentTargets["uv"]) {
+      currentTargets["uv"] = {
+        executor: "@mgwilt/nx-uv:uv",
         options: {
           cwd: config.root,
-          args: ['help'],
+          args: ["help"],
         },
       };
     }
@@ -48,8 +51,8 @@ export async function convertGenerator(tree: Tree, options: ConvertGeneratorSche
   }
 
   ensureNxUvPlugin(tree, {
-    targetPrefix: 'uv:',
-    inferencePreset: 'standard',
+    targetPrefix: "uv:",
+    inferencePreset: "standard",
     includeGlobalTargets: false,
   });
 
