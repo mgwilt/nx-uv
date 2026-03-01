@@ -36,7 +36,7 @@ jobs:
           pnpm build
 
       - name: Version from conventional commits
-        run: pnpm nx release version --yes
+        run: pnpm nx release version
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -45,14 +45,14 @@ jobs:
 
       - name: Publish to npm (Trusted Publishing)
         if: ${{ env.NPM_ACCESS_TOKEN == '' }}
-        run: pnpm nx release publish --yes
+        run: pnpm nx release publish
         env:
           NPM_CONFIG_PROVENANCE: true
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Publish to npm (Token Fallback)
         if: ${{ env.NPM_ACCESS_TOKEN != '' }}
-        run: pnpm nx release publish --yes
+        run: pnpm nx release publish
         env:
           NODE_AUTH_TOKEN: ${{ env.NPM_ACCESS_TOKEN }}
           NPM_CONFIG_PROVENANCE: true
