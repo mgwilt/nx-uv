@@ -2,23 +2,71 @@
 
 Nx plugin for integrating [uv](https://docs.astral.sh/uv/) workflows into an Nx monorepo.
 
+## Coverage model
+
+The plugin now uses a hybrid model:
+
+- Typed executor families for major uv command groups
+- Universal executor fallback for complete command passthrough
+- Inferred targets via Nx plugin `createNodesV2` from `pyproject.toml`
+- Explicit generators for workspace/project scaffolding, conversion, migration, and integrations
+
 ## Executors
 
-- `@mgwilt/nx-uv:sync` runs `uv sync`
-- `@mgwilt/nx-uv:run` runs `uv run`
-- `@mgwilt/nx-uv:add` runs `uv add`
+- `@mgwilt/nx-uv:uv` universal uv passthrough
+- `@mgwilt/nx-uv:project` top-level project flows (`run`, `sync`, `lock`, `build`, etc.)
+- `@mgwilt/nx-uv:pip` pip interface subcommands
+- `@mgwilt/nx-uv:tool` tool management subcommands
+- `@mgwilt/nx-uv:python` Python management subcommands
+- `@mgwilt/nx-uv:auth` auth subcommands
+- `@mgwilt/nx-uv:cache` cache subcommands
+- `@mgwilt/nx-uv:self` self-management subcommands
 
-## Generator
+## Generators
 
-- `@mgwilt/nx-uv:python-package`
-  - Creates a Python package in `packages/py/<name>` by default.
-  - Generates `pyproject.toml`, `src/<module>/__init__.py`, and optional tests.
-  - Adds Nx targets: `sync`, `add`, `run`, `test`, `lint`.
+- `@mgwilt/nx-uv:workspace` configure root uv workspace + Nx inference plugin options
+- `@mgwilt/nx-uv:project` generate Python app/lib/script projects with uv targets
+- `@mgwilt/nx-uv:convert` convert existing projects to redesigned executors/targets
+- `@mgwilt/nx-uv:integration` scaffold integration templates
 
-## Local Usage
+## Inference plugin
 
-```bash
-pnpm nx g @mgwilt/nx-uv:python-package shared
-pnpm nx run shared:sync
-pnpm nx run shared:test
+Add plugin entry in `nx.json`:
+
+```json
+{
+  "plugins": [
+    {
+      "plugin": "@mgwilt/nx-uv",
+      "options": {
+        "targetPrefix": "uv:",
+        "inferencePreset": "standard",
+        "includeGlobalTargets": false
+      }
+    }
+  ]
+}
 ```
+
+Inferred projects are discovered via `**/pyproject.toml`.
+
+## Integration templates
+
+`integration` generator templates:
+
+- `alternative-indexes`
+- `aws-lambda`
+- `coiled`
+- `dependency-bots`
+- `docker`
+- `fastapi`
+- `github`
+- `gitlab`
+- `jupyter`
+- `marimo`
+- `pre-commit`
+- `pytorch`
+
+## uv compatibility
+
+The executor runtime enforces uv `0.9.x` by default. Set `skipVersionCheck=true` to bypass.

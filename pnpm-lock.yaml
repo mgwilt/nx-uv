@@ -14,6 +14,9 @@ importers:
       '@nx/vite':
         specifier: 22.5.3
         version: 22.5.3(@babel/traverse@7.29.0)(@swc-node/register@1.11.1(@swc/core@1.15.18)(@swc/types@0.1.25)(typescript@5.9.3))(@swc/core@1.15.18)(nx@22.5.3(@swc-node/register@1.11.1(@swc/core@1.15.18)(@swc/types@0.1.25)(typescript@5.9.3))(@swc/core@1.15.18))(typescript@5.9.3)(vite@7.3.1(@types/node@20.19.35)(jiti@2.6.1)(yaml@2.8.2))(vitest@4.0.18(@types/node@20.19.35)(jiti@2.6.1)(jsdom@27.4.0)(yaml@2.8.2))
+      nx:
+        specifier: 22.5.3
+        version: 22.5.3(@swc-node/register@1.11.1(@swc/core@1.15.18)(@swc/types@0.1.25)(typescript@5.9.3))(@swc/core@1.15.18)
       tslib:
         specifier: ^2.3.0
         version: 2.8.1
@@ -66,9 +69,6 @@ importers:
       jsonc-eslint-parser:
         specifier: ^2.4.0
         version: 2.4.2
-      nx:
-        specifier: 22.5.3
-        version: 22.5.3(@swc-node/register@1.11.1(@swc/core@1.15.18)(@swc/types@0.1.25)(typescript@5.9.3))(@swc/core@1.15.18)
       prettier:
         specifier: ^3.6.2
         version: 3.8.1
