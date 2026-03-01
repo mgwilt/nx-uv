@@ -1,0 +1,43 @@
+{
+  "$schema": "https://json-schema.org/schema",
+  "version": 2,
+  "title": "uv add executor",
+  "description": "Add dependencies with uv add in the selected project directory.",
+  "type": "object",
+  "properties": {
+    "cwd": {
+      "type": "string",
+      "description": "Working directory relative to the workspace root."
+    },
+    "package": {
+      "type": "string",
+      "description": "Workspace package passed through as --package."
+    },
+    "dev": {
+      "type": "boolean",
+      "description": "Pass --dev to uv add.",
+      "default": false
+    },
+    "group": {
+      "type": "string",
+      "description": "Dependency group passed through as --group."
+    },
+    "dependencies": {
+      "type": "array",
+      "description": "Dependencies to add.",
+      "items": {
+        "type": "string"
+      },
+      "minItems": 1
+    },
+    "extraArgs": {
+      "type": "array",
+      "description": "Additional arguments appended before dependencies.",
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "required": ["dependencies"],
+  "additionalProperties": false
+}

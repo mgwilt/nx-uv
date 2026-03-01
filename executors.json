@@ -1,0 +1,19 @@
+{
+  "executors": {
+    "sync": {
+      "implementation": "./src/executors/sync/sync",
+      "schema": "./src/executors/sync/schema.json",
+      "description": "Run uv sync for a Python package."
+    },
+    "run": {
+      "implementation": "./src/executors/run/run",
+      "schema": "./src/executors/run/schema.json",
+      "description": "Run arbitrary commands through uv run."
+    },
+    "add": {
+      "implementation": "./src/executors/add/add",
+      "schema": "./src/executors/add/schema.json",
+      "description": "Add dependencies through uv add."
+    }
+  }
+}
