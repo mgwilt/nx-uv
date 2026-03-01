@@ -2,6 +2,10 @@
 
 Nx plugin for integrating [uv](https://docs.astral.sh/uv/) workflows into an Nx monorepo.
 
+[![CI](https://github.com/mgwilt/nx-uv/actions/workflows/ci.yml/badge.svg)](https://github.com/mgwilt/nx-uv/actions/workflows/ci.yml)
+[![Coverage](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/mgwilt/nx-uv/badges/.github/badges/coverage.json)](https://github.com/mgwilt/nx-uv/blob/badges/.github/badges/coverage.json)
+[![npm beta](https://img.shields.io/npm/v/@mgwilt/nx-uv/beta?label=npm%20beta)](https://www.npmjs.com/package/@mgwilt/nx-uv?activeTab=versions)
+
 ## Coverage model
 
 The plugin uses a hybrid model:
@@ -70,6 +74,25 @@ Inferred projects are discovered via `**/pyproject.toml`.
 ## uv compatibility
 
 The executor runtime enforces uv `0.9.x` by default. Set `skipVersionCheck=true` to bypass.
+
+## Quality gates
+
+- `pnpm quality:local` runs format check, lint, typecheck, and unit/integration tests.
+- `pnpm quality:ci` runs the full strict gate: format check, lint, typecheck, unit/integration/e2e tests, coverage thresholds, and build.
+- Coverage thresholds are enforced at: lines `95`, functions `95`, statements `95`, branches `90`.
+- Coverage badge JSON is generated from `coverage/coverage-summary.json` and written to `.github/badges/coverage.json`.
+
+## Hooks
+
+- Lefthook is installed via `prepare` (`pnpm install` auto-installs hooks).
+- `pre-commit` enforces format, lint, typecheck, unit, and integration tests.
+- `pre-push` enforces the full `quality:ci` gate.
+
+## CI model
+
+- Pull requests run `nx affected` checks using base/head SHAs.
+- Pushes to `main` run full quality gates and update the coverage badge on the `badges` branch.
+- Nightly workflow runs full quality gates for drift detection.
 
 ## Release channel
 
