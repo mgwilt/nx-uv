@@ -4,7 +4,7 @@ Nx plugin for integrating [uv](https://docs.astral.sh/uv/) workflows into an Nx 
 
 ## Coverage model
 
-The plugin now uses a hybrid model:
+The plugin uses a hybrid model:
 
 - Typed executor families for major uv command groups
 - Universal executor fallback for complete command passthrough
@@ -70,3 +70,7 @@ Inferred projects are discovered via `**/pyproject.toml`.
 ## uv compatibility
 
 The executor runtime enforces uv `0.9.x` by default. Set `skipVersionCheck=true` to bypass.
+
+## Release channel
+
+Automated releases are published as npm prereleases using the `beta` dist-tag.
