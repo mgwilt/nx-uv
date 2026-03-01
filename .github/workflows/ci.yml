@@ -83,6 +83,7 @@ jobs:
           set -euo pipefail
 
           BADGE_WORKTREE="$(mktemp -d)"
+          BRANCH_EXISTS=0
           cleanup() {
             git worktree remove --force "$BADGE_WORKTREE" >/dev/null 2>&1 || true
             rm -rf "$BADGE_WORKTREE"
@@ -90,6 +91,7 @@ jobs:
           trap cleanup EXIT
 
           if git ls-remote --exit-code --heads origin badges >/dev/null 2>&1; then
+            BRANCH_EXISTS=1
             git fetch origin badges
             git worktree add -B badges "$BADGE_WORKTREE" origin/badges
           else
@@ -103,6 +105,11 @@ jobs:
           git add .github/badges/coverage.json
 
           if git diff --cached --quiet; then
+            if [ "$BRANCH_EXISTS" -eq 0 ]; then
+              echo "No badge diff, creating badges branch from current HEAD."
+              git push origin HEAD:badges
+              exit 0
+            fi
             echo "No coverage badge changes to publish."
             exit 0
           fi
