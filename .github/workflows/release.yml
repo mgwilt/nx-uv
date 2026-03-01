@@ -41,8 +41,17 @@ jobs:
       - name: Push release commit and tags
         run: git push --follow-tags
 
-      - name: Publish to npm
+      - name: Publish to npm (Trusted Publishing)
+        if: ${{ secrets.NPM_ACCESS_TOKEN == '' }}
         run: pnpm nx release publish --yes
         env:
+          NPM_CONFIG_PROVENANCE: true
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Publish to npm (Token Fallback)
+        if: ${{ secrets.NPM_ACCESS_TOKEN != '' }}
+        run: pnpm nx release publish --yes
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_ACCESS_TOKEN }}
           NPM_CONFIG_PROVENANCE: true
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
