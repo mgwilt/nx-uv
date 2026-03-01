@@ -1,0 +1,61 @@
+name: Samples
+
+on:
+  pull_request:
+    paths:
+      - "src/generators/**"
+      - "generators.json"
+      - "package.json"
+      - "pnpm-lock.yaml"
+      - "tools/generate-samples.cjs"
+      - "samples/**"
+      - ".github/workflows/samples.yml"
+  push:
+    branches:
+      - main
+    paths:
+      - "src/generators/**"
+      - "generators.json"
+      - "package.json"
+      - "pnpm-lock.yaml"
+      - "tools/generate-samples.cjs"
+      - "samples/**"
+      - ".github/workflows/samples.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  sample-drift:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Regenerate samples
+        run: pnpm samples:generate
+
+      - name: Verify committed samples are up to date
+        run: |
+          set -euo pipefail
+
+          if [ -n "$(git status --porcelain -- samples)" ]; then
+            echo "Sample scaffolding is out of date. Run 'pnpm samples:generate' and commit the changes."
+            git status --short -- samples
+            git --no-pager diff -- samples || true
+            exit 1
+          fi
