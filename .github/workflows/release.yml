@@ -35,13 +35,15 @@ jobs:
           pnpm test
           pnpm build
 
+      - name: Configure git author
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
       - name: Version from conventional commits
-        run: pnpm nx release version
+        run: pnpm nx release version --git-commit --git-tag --git-push
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Push release commit and tags
-        run: git push --follow-tags
 
       - name: Publish to npm (Trusted Publishing)
         if: ${{ env.NPM_ACCESS_TOKEN == '' }}
@@ -57,3 +59,14 @@ jobs:
           NODE_AUTH_TOKEN: ${{ env.NPM_ACCESS_TOKEN }}
           NPM_CONFIG_PROVENANCE: true
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Ensure GitHub release exists
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG="v$(node -p "require('./package.json').version")"
+          if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" > /dev/null 2>&1; then
+            echo "GitHub release already exists for $TAG"
+          else
+            gh release create "$TAG" --repo "$GITHUB_REPOSITORY" --generate-notes
+          fi
