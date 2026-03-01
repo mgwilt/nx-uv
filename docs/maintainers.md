@@ -8,6 +8,10 @@ This document covers repository operations and internal workflows. End-user usag
   - `pnpm build`
 - Regenerate samples:
   - `pnpm samples:generate`
+- Regenerate LLM context files:
+  - `pnpm llms:generate`
+- Check LLM context drift:
+  - `pnpm llms:check`
 - Lint:
   - `pnpm lint`
 - Typecheck:
@@ -54,6 +58,8 @@ Coverage thresholds enforced in `vitest.coverage.config.mts`:
   - Scheduled full quality validation
 - `samples.yml`
   - Regenerates `samples/` and fails on drift for generator-related PRs/pushes
+- `llms.yml`
+  - Validates `llms.txt` and `llms-full.txt` drift for docs/automation-related PRs/pushes
 - `release.yml`
   - Manual prerelease flow (`beta` channel)
 - `commitlint.yml`
@@ -80,3 +86,20 @@ Current release policy:
 
 - [npm](https://www.npmjs.com/) dist-tag: `beta`
 - Stable `latest` should not be the default path until v1 planning changes.
+
+## llms automation
+
+The repository tracks LLM context artifacts in version control:
+
+- `llms.txt`
+- `llms-full.txt`
+
+They are generated from `tools/llms-sources.json` using:
+
+- `pnpm llms:generate`
+
+Drift is enforced by:
+
+- `pnpm llms:check` in `quality-local` and `quality-ci`
+- pre-push hook (via `quality-ci`)
+- `.github/workflows/llms.yml`
