@@ -7,8 +7,8 @@ vi.mock('child_process', () => ({
   spawnSync: spawnSyncMock,
 }));
 
-import executor from './sync';
-import { SyncExecutorSchema } from './schema';
+import executor from '../uv/uv';
+import { UvExecutorSchema } from '../uv/schema';
 
 const context: ExecutorContext = {
   root: '/repo',
@@ -33,51 +33,67 @@ const context: ExecutorContext = {
   nxJsonConfiguration: {},
 };
 
-describe('sync executor', () => {
+describe('uv executor', () => {
   beforeEach(() => {
     spawnSyncMock.mockReset();
-    spawnSyncMock.mockReturnValue({
-      status: 0,
-      pid: 1,
-      output: [],
-      stdout: null,
-      stderr: null,
-      signal: null,
-    });
   });
 
-  it('runs uv sync with package, frozen, and extra args', async () => {
-    const options: SyncExecutorSchema = {
-      package: 'shared',
-      frozen: true,
-      extraArgs: ['--all-groups'],
+  it('fails version check for unsupported uv versions', async () => {
+    spawnSyncMock.mockReturnValue({
+      status: 0,
+      stdout: 'uv 1.0.0\n',
+      stderr: '',
+      pid: 1,
+      output: [],
+      signal: null,
+    });
+
+    const options: UvExecutorSchema = {
+      args: ['help'],
+    };
+
+    const result = await executor(options, context);
+
+    expect(result.success).toBe(false);
+    expect(spawnSyncMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('runs universal uv args', async () => {
+    spawnSyncMock.mockImplementation((_command: string, args: string[]) => {
+      if (args[0] === '--version') {
+        return {
+          status: 0,
+          stdout: 'uv 0.9.29\n',
+          stderr: '',
+          pid: 1,
+          output: [],
+          signal: null,
+        };
+      }
+
+      return {
+        status: 0,
+        stdout: '',
+        stderr: '',
+        pid: 1,
+        output: [],
+        signal: null,
+      };
+    });
+
+    const options: UvExecutorSchema = {
+      args: ['cache', 'size'],
+      cwd: 'packages/py/shared',
     };
 
     const result = await executor(options, context);
 
     expect(result.success).toBe(true);
-    expect(spawnSyncMock).toHaveBeenCalledWith(
+    expect(spawnSyncMock).toHaveBeenNthCalledWith(
+      2,
       'uv',
-      ['sync', '--package', 'shared', '--frozen', '--all-groups'],
-      {
-        cwd: '/repo/packages/py/shared',
-        env: process.env,
-        stdio: 'inherit',
-      },
+      ['cache', 'size'],
+      expect.objectContaining({ cwd: '/repo/packages/py/shared' }),
     );
-  });
-
-  it('uses explicit cwd when provided', async () => {
-    const options: SyncExecutorSchema = {
-      cwd: 'tmp/workspace',
-    };
-
-    await executor(options, context);
-
-    expect(spawnSyncMock).toHaveBeenCalledWith('uv', ['sync'], {
-      cwd: '/repo/tmp/workspace',
-      env: process.env,
-      stdio: 'inherit',
-    });
   });
 });

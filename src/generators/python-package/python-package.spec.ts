@@ -1,49 +1,68 @@
-import { readProjectConfiguration, Tree } from '@nx/devkit';
+import {
+  readJson,
+  readProjectConfiguration,
+  Tree,
+} from '@nx/devkit';
 import { createTreeWithEmptyWorkspace } from '@nx/devkit/testing';
 
-import { pythonPackageGenerator } from './python-package';
-import { PythonPackageGeneratorSchema } from './schema';
+import { convertGenerator } from '../convert/convert';
+import { projectGenerator } from '../project/project';
+import { workspaceGenerator } from '../workspace/workspace';
 
-describe('python-package generator', () => {
+describe('uv generators', () => {
   let tree: Tree;
 
   beforeEach(() => {
     tree = createTreeWithEmptyWorkspace();
   });
 
-  it('creates a package with default paths and uv targets', async () => {
-    const options: PythonPackageGeneratorSchema = { name: 'shared' };
+  it('configures workspace plugin and root pyproject', async () => {
+    await workspaceGenerator(tree, {
+      name: 'mono',
+      targetPrefix: 'uv:',
+      inferencePreset: 'standard',
+      includeGlobalTargets: true,
+      skipFormat: true,
+    });
 
-    await pythonPackageGenerator(tree, options);
+    const nxJson = readJson(tree, 'nx.json');
+
+    expect(tree.exists('pyproject.toml')).toBe(true);
+    expect(nxJson.plugins).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          plugin: '@mgwilt/nx-uv',
+        }),
+      ]),
+    );
+  });
+
+  it('creates a Python project with new uv targets', async () => {
+    await projectGenerator(tree, {
+      name: 'shared',
+      projectType: 'lib',
+      skipFormat: true,
+    });
 
     const config = readProjectConfiguration(tree, 'shared');
 
-    expect(config.root).toBe('packages/py/shared');
-    expect(config.targets['sync'].executor).toBe('@mgwilt/nx-uv:sync');
-    expect(config.targets['add'].executor).toBe('@mgwilt/nx-uv:add');
-    expect(config.targets['run'].executor).toBe('@mgwilt/nx-uv:run');
+    expect(config.targets['sync'].executor).toBe('@mgwilt/nx-uv:project');
+    expect(config.targets['uv'].executor).toBe('@mgwilt/nx-uv:uv');
     expect(tree.exists('packages/py/shared/pyproject.toml')).toBe(true);
     expect(tree.exists('packages/py/shared/src/shared/__init__.py')).toBe(true);
-    expect(tree.exists('packages/py/shared/tests/test_smoke.py')).toBe(true);
   });
 
-  it('handles full path names and custom module names', async () => {
-    const options: PythonPackageGeneratorSchema = {
-      name: 'packages/py/analytics',
-      moduleName: 'analytics_core',
-      withTests: false,
-      tags: 'python,shared',
-    };
+  it('adds default uv targets to existing pyproject project', async () => {
+    await projectGenerator(tree, {
+      name: 'existing',
+      projectType: 'lib',
+      skipFormat: true,
+    });
 
-    await pythonPackageGenerator(tree, options);
+    await convertGenerator(tree, { project: 'existing', skipFormat: true });
 
-    const config = readProjectConfiguration(tree, 'analytics');
-
-    expect(config.root).toBe('packages/py/analytics');
-    expect(config.tags).toEqual(['python', 'shared']);
-    expect(tree.exists('packages/py/analytics/src/analytics_core/__init__.py')).toBe(
-      true,
-    );
-    expect(tree.exists('packages/py/analytics/tests/test_smoke.py')).toBe(false);
+    const converted = readProjectConfiguration(tree, 'existing');
+    expect(converted.targets['sync'].executor).toBe('@mgwilt/nx-uv:project');
+    expect(converted.targets['uv'].executor).toBe('@mgwilt/nx-uv:uv');
   });
 });

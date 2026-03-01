@@ -7,8 +7,8 @@ vi.mock('child_process', () => ({
   spawnSync: spawnSyncMock,
 }));
 
-import executor from './add';
-import { AddExecutorSchema } from './schema';
+import executor from '../pip/pip';
+import { PipExecutorSchema } from '../pip/schema';
 
 const context: ExecutorContext = {
   root: '/repo',
@@ -33,56 +33,48 @@ const context: ExecutorContext = {
   nxJsonConfiguration: {},
 };
 
-describe('add executor', () => {
+describe('pip executor', () => {
   beforeEach(() => {
     spawnSyncMock.mockReset();
-    spawnSyncMock.mockReturnValue({
-      status: 0,
-      pid: 1,
-      output: [],
-      stdout: null,
-      stderr: null,
-      signal: null,
+    spawnSyncMock.mockImplementation((_command: string, args: string[]) => {
+      if (args[0] === '--version') {
+        return {
+          status: 0,
+          stdout: 'uv 0.9.29\n',
+          stderr: '',
+          pid: 1,
+          output: [],
+          signal: null,
+        };
+      }
+
+      return {
+        status: 0,
+        stdout: '',
+        stderr: '',
+        pid: 1,
+        output: [],
+        signal: null,
+      };
     });
   });
 
-  it('runs uv add with dependencies and options', async () => {
-    const options: AddExecutorSchema = {
-      package: 'shared',
-      dev: true,
-      group: 'lint',
-      dependencies: ['ruff>=0.5', 'pytest>=8'],
-      extraArgs: ['--frozen'],
+  it('runs uv pip command with args', async () => {
+    const options: PipExecutorSchema = {
+      command: 'list',
+      commandArgs: ['--format', 'json'],
     };
 
     const result = await executor(options, context);
 
     expect(result.success).toBe(true);
-    expect(spawnSyncMock).toHaveBeenCalledWith(
+    expect(spawnSyncMock).toHaveBeenNthCalledWith(
+      2,
       'uv',
-      [
-        'add',
-        '--package',
-        'shared',
-        '--dev',
-        '--group',
-        'lint',
-        '--frozen',
-        'ruff>=0.5',
-        'pytest>=8',
-      ],
-      {
+      ['pip', 'list', '--format', 'json'],
+      expect.objectContaining({
         cwd: '/repo/packages/py/shared',
-        env: process.env,
-        stdio: 'inherit',
-      },
+      }),
     );
-  });
-
-  it('fails when dependencies are missing', async () => {
-    const result = await executor({} as AddExecutorSchema, context);
-
-    expect(result.success).toBe(false);
-    expect(spawnSyncMock).not.toHaveBeenCalled();
   });
 });

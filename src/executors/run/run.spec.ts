@@ -7,8 +7,8 @@ vi.mock('child_process', () => ({
   spawnSync: spawnSyncMock,
 }));
 
-import executor from './run';
-import { RunExecutorSchema } from './schema';
+import executor from '../project/project';
+import { ProjectExecutorSchema } from '../project/schema';
 
 const context: ExecutorContext = {
   root: '/repo',
@@ -33,61 +33,64 @@ const context: ExecutorContext = {
   nxJsonConfiguration: {},
 };
 
-describe('run executor', () => {
-  beforeEach(() => {
-    spawnSyncMock.mockReset();
-    spawnSyncMock.mockReturnValue({
+function mockUvSuccess() {
+  spawnSyncMock.mockImplementation((_command: string, args: string[]) => {
+    if (args[0] === '--version') {
+      return {
+        status: 0,
+        stdout: 'uv 0.9.29\n',
+        stderr: '',
+        pid: 1,
+        output: [],
+        signal: null,
+      };
+    }
+
+    return {
       status: 0,
+      stdout: '',
+      stderr: '',
       pid: 1,
       output: [],
-      stdout: null,
-      stderr: null,
       signal: null,
-    });
+    };
+  });
+}
+
+describe('project executor', () => {
+  beforeEach(() => {
+    spawnSyncMock.mockReset();
+    mockUvSuccess();
   });
 
-  it('runs uv run with full command options', async () => {
-    const options: RunExecutorSchema = {
-      command: 'pytest',
-      args: ['-q'],
-      python: '3.12',
-      with: ['pytest>=8', 'ruff>=0.5'],
-      extraArgs: ['--no-project'],
-      package: 'shared',
+  it('runs uv project command after version check', async () => {
+    const options: ProjectExecutorSchema = {
+      command: 'run',
+      commandArgs: ['--', 'pytest', '-q'],
+      cwd: 'packages/py/shared',
+      extraArgs: ['--offline'],
     };
 
     const result = await executor(options, context);
 
     expect(result.success).toBe(true);
-    expect(spawnSyncMock).toHaveBeenCalledWith(
+    expect(spawnSyncMock).toHaveBeenNthCalledWith(
+      1,
       'uv',
-      [
-        'run',
-        '--package',
-        'shared',
-        '--python',
-        '3.12',
-        '--with',
-        'pytest>=8',
-        '--with',
-        'ruff>=0.5',
-        '--no-project',
-        '--',
-        'pytest',
-        '-q',
-      ],
-      {
+      ['--version'],
+      expect.objectContaining({
         cwd: '/repo/packages/py/shared',
-        env: process.env,
-        stdio: 'inherit',
-      },
+        stdio: 'pipe',
+      }),
     );
-  });
-
-  it('fails when command is missing', async () => {
-    const result = await executor({} as RunExecutorSchema, context);
-
-    expect(result.success).toBe(false);
-    expect(spawnSyncMock).not.toHaveBeenCalled();
+    expect(spawnSyncMock).toHaveBeenNthCalledWith(
+      2,
+      'uv',
+      ['run', '--', 'pytest', '-q', '--offline'],
+      expect.objectContaining({
+        cwd: '/repo/packages/py/shared',
+        stdio: 'inherit',
+      }),
+    );
   });
 });
