@@ -13,14 +13,21 @@
   "include": [
     "vitest.config.ts",
     "vitest.config.mts",
+    "vitest.unit.config.mts",
+    "vitest.integration.config.mts",
+    "vitest.e2e.config.mts",
+    "vitest.coverage.config.mts",
     "src/**/*.test.ts",
     "src/**/*.spec.ts",
+    "src/**/*.unit.spec.ts",
+    "src/**/*.int.spec.ts",
     "src/**/*.test.tsx",
     "src/**/*.spec.tsx",
     "src/**/*.test.js",
     "src/**/*.spec.js",
     "src/**/*.test.jsx",
     "src/**/*.spec.jsx",
+    "e2e/**/*.ts",
     "src/**/*.d.ts"
   ]
 }

@@ -1,20 +1,18 @@
 import { defineConfig } from "vitest/config";
 import { nxViteTsPaths } from "@nx/vite/plugins/nx-tsconfig-paths.plugin";
-import { nxCopyAssetsPlugin } from "@nx/vite/plugins/nx-copy-assets.plugin";
 
 export default defineConfig(() => ({
   root: __dirname,
   cacheDir: "node_modules/.vite",
-  plugins: [nxViteTsPaths(), nxCopyAssetsPlugin(["*.md"])],
+  plugins: [nxViteTsPaths()],
   test: {
-    name: "nx-uv",
+    name: "nx-uv-e2e",
     watch: false,
     globals: true,
     environment: "node",
-    include: [
-      "src/**/*.{unit,int,spec,test}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}",
-      "e2e/**/*.e2e.spec.ts",
-    ],
+    include: ["e2e/**/*.e2e.spec.ts"],
+    testTimeout: 120000,
+    hookTimeout: 120000,
     reporters: ["default"],
   },
 }));

@@ -36,9 +36,21 @@
         ]
       }
     },
+    "typecheck": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "tsc -p tsconfig.lib.json --noEmit && tsc -p tsconfig.spec.json --noEmit"
+      }
+    },
     "nx-release-publish": {
       "options": {
         "packageRoot": "dist"
+      }
+    },
+    "format-check": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "pnpm nx format:check --all"
       }
     },
     "lint": {
@@ -46,9 +58,53 @@
     },
     "test": {
       "executor": "@nx/vitest:test",
-      "outputs": ["{options.reportsDirectory}"],
       "options": {
+        "configFile": "vitest.config.mts"
+      }
+    },
+    "test-unit": {
+      "executor": "@nx/vitest:test",
+      "options": {
+        "configFile": "vitest.unit.config.mts"
+      }
+    },
+    "test-integration": {
+      "executor": "@nx/vitest:test",
+      "options": {
+        "configFile": "vitest.integration.config.mts"
+      }
+    },
+    "test-e2e": {
+      "executor": "@nx/vitest:test",
+      "options": {
+        "configFile": "vitest.e2e.config.mts"
+      }
+    },
+    "test-coverage": {
+      "executor": "@nx/vitest:test",
+      "outputs": ["{workspaceRoot}/coverage"],
+      "options": {
+        "configFile": "vitest.coverage.config.mts",
         "reportsDirectory": "coverage"
+      }
+    },
+    "coverage-badge": {
+      "executor": "nx:run-commands",
+      "dependsOn": ["build", "test-coverage"],
+      "options": {
+        "command": "node dist/src/tools/coverage-badge.js --summary coverage/coverage-summary.json --output .github/badges/coverage.json"
+      }
+    },
+    "quality-local": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "pnpm nx run nx-uv:format-check && pnpm nx run-many -t lint,typecheck,test-unit,test-integration -p nx-uv --nxBail --outputStyle=static"
+      }
+    },
+    "quality-ci": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "pnpm nx run nx-uv:format-check && pnpm nx run-many -t lint,typecheck,test-unit,test-integration,test-e2e,test-coverage,build -p nx-uv --nxBail --outputStyle=static"
       }
     }
   }

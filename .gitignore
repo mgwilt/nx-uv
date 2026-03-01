@@ -4,3 +4,4 @@ dist
 out-tsc
 .nx
 .DS_Store
+plans/

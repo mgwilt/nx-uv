@@ -7,14 +7,11 @@ export default defineConfig(() => ({
   cacheDir: "node_modules/.vite",
   plugins: [nxViteTsPaths(), nxCopyAssetsPlugin(["*.md"])],
   test: {
-    name: "nx-uv",
+    name: "nx-uv-integration",
     watch: false,
     globals: true,
     environment: "node",
-    include: [
-      "src/**/*.{unit,int,spec,test}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}",
-      "e2e/**/*.e2e.spec.ts",
-    ],
+    include: ["src/**/*.int.spec.ts"],
     reporters: ["default"],
   },
 }));

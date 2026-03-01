@@ -1,0 +1,17 @@
+pre-commit:
+  commands:
+    format-check:
+      run: pnpm format:check
+    lint:
+      run: pnpm lint
+    typecheck:
+      run: pnpm typecheck
+    test-unit:
+      run: pnpm test:unit
+    test-integration:
+      run: pnpm test:integration
+
+pre-push:
+  commands:
+    quality-ci:
+      run: pnpm quality:ci

@@ -7,14 +7,24 @@ export default defineConfig(() => ({
   cacheDir: "node_modules/.vite",
   plugins: [nxViteTsPaths(), nxCopyAssetsPlugin(["*.md"])],
   test: {
-    name: "nx-uv",
+    name: "nx-uv-coverage",
     watch: false,
     globals: true,
     environment: "node",
-    include: [
-      "src/**/*.{unit,int,spec,test}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}",
-      "e2e/**/*.e2e.spec.ts",
-    ],
+    include: ["src/**/*.unit.spec.ts", "src/**/*.int.spec.ts"],
     reporters: ["default"],
+    coverage: {
+      enabled: true,
+      provider: "v8" as const,
+      reportsDirectory: "coverage",
+      reporter: ["text-summary", "lcov", "json-summary"],
+      reportOnFailure: true,
+      thresholds: {
+        lines: 95,
+        functions: 95,
+        statements: 95,
+        branches: 90,
+      },
+    },
   },
 }));
