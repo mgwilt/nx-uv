@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/schema",
+  "$id": "ConvertGenerator",
+  "title": "uv convert generator",
+  "type": "object",
+  "properties": {
+    "project": {
+      "type": "string",
+      "description": "Optional single project name to convert. Defaults to all projects containing pyproject.toml."
+    },
+    "skipFormat": {
+      "type": "boolean",
+      "default": false
+    }
+  },
+  "additionalProperties": false
+}

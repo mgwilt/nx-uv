@@ -1,0 +1,46 @@
+{
+  "$schema": "https://json-schema.org/schema",
+  "$id": "ProjectGenerator",
+  "title": "uv project generator",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Project name or path for the new Python project.",
+      "$default": { "$source": "argv", "index": 0 }
+    },
+    "directory": {
+      "type": "string",
+      "description": "Directory for the generated project.",
+      "default": "packages/py"
+    },
+    "moduleName": {
+      "type": "string",
+      "description": "Python import module name. Defaults to normalized project name."
+    },
+    "projectType": {
+      "type": "string",
+      "enum": ["app", "lib", "script"],
+      "default": "lib"
+    },
+    "withTests": {
+      "type": "boolean",
+      "default": true
+    },
+    "workspaceMember": {
+      "type": "boolean",
+      "description": "Ensure the project is covered by a workspace members declaration when possible.",
+      "default": true
+    },
+    "tags": {
+      "type": "string",
+      "description": "Comma-delimited Nx project tags."
+    },
+    "skipFormat": {
+      "type": "boolean",
+      "default": false
+    }
+  },
+  "required": ["name"],
+  "additionalProperties": false
+}

@@ -1,0 +1,43 @@
+{
+  "$schema": "https://json-schema.org/schema",
+  "$id": "IntegrationGenerator",
+  "title": "uv integration generator",
+  "type": "object",
+  "properties": {
+    "template": {
+      "type": "string",
+      "enum": [
+        "alternative-indexes",
+        "aws-lambda",
+        "coiled",
+        "dependency-bots",
+        "docker",
+        "fastapi",
+        "github",
+        "gitlab",
+        "jupyter",
+        "marimo",
+        "pre-commit",
+        "pytorch"
+      ]
+    },
+    "project": {
+      "type": "string",
+      "description": "Optional Nx project receiving template files."
+    },
+    "directory": {
+      "type": "string",
+      "description": "Optional directory to write integration files into when no project is provided."
+    },
+    "overwrite": {
+      "type": "boolean",
+      "default": false
+    },
+    "skipFormat": {
+      "type": "boolean",
+      "default": false
+    }
+  },
+  "required": ["template"],
+  "additionalProperties": false
+}

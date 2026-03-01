@@ -1,0 +1,41 @@
+{
+  "$schema": "https://json-schema.org/schema",
+  "$id": "WorkspaceGenerator",
+  "title": "uv workspace generator",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Workspace root project name for pyproject.toml if one does not exist."
+    },
+    "membersGlob": {
+      "type": "string",
+      "description": "Workspace members glob used in [tool.uv.workspace].",
+      "default": "packages/py/*"
+    },
+    "exclude": {
+      "type": "string",
+      "description": "Optional comma-delimited list of excluded member globs."
+    },
+    "targetPrefix": {
+      "type": "string",
+      "description": "Prefix used for inferred uv targets.",
+      "default": "uv:"
+    },
+    "inferencePreset": {
+      "type": "string",
+      "enum": ["minimal", "standard", "full"],
+      "default": "standard"
+    },
+    "includeGlobalTargets": {
+      "type": "boolean",
+      "description": "Include opt-in global/system uv targets in inferred targets.",
+      "default": false
+    },
+    "skipFormat": {
+      "type": "boolean",
+      "default": false
+    }
+  },
+  "additionalProperties": false
+}

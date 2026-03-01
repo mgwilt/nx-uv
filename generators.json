@@ -1,9 +1,24 @@
 {
   "generators": {
-    "python-package": {
-      "factory": "./src/generators/python-package/python-package",
-      "schema": "./src/generators/python-package/schema.json",
-      "description": "Generate a Python package with uv and Nx targets."
+    "workspace": {
+      "factory": "./src/generators/workspace/workspace",
+      "schema": "./src/generators/workspace/schema.json",
+      "description": "Configure a uv workspace root and Nx plugin inference settings."
+    },
+    "project": {
+      "factory": "./src/generators/project/project",
+      "schema": "./src/generators/project/schema.json",
+      "description": "Generate a Python app/lib/script project wired for uv and Nx."
+    },
+    "convert": {
+      "factory": "./src/generators/convert/convert",
+      "schema": "./src/generators/convert/schema.json",
+      "description": "Convert existing Python Nx projects to new uv targets and executors."
+    },
+    "integration": {
+      "factory": "./src/generators/integration/integration",
+      "schema": "./src/generators/integration/schema.json",
+      "description": "Scaffold uv integration templates (CI, Docker, FastAPI, Lambda, and more)."
     }
   }
 }
