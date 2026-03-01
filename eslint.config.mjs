@@ -16,6 +16,7 @@ export default [
   },
   {
     files: ["**/package.json", "**/executors.json", "**/generators.json"],
+    ignores: ["samples/**"],
     rules: {
       "@nx/nx-plugin-checks": "error",
     },
@@ -25,6 +26,7 @@ export default [
   },
   {
     files: ["**/*.json"],
+    ignores: ["samples/**"],
     rules: {
       "@nx/dependency-checks": [
         "error",
@@ -32,6 +34,8 @@ export default [
           ignoredFiles: [
             "{projectRoot}/eslint.config.{js,cjs,mjs,ts,cts,mts}",
             "{projectRoot}/vite.config.{js,ts,mjs,mts}",
+            "{projectRoot}/tools/**",
+            "{projectRoot}/samples/**",
           ],
         },
       ],
