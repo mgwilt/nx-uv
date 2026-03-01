@@ -4,7 +4,7 @@ Nx plugin for integrating [uv](https://docs.astral.sh/uv/) workflows into an Nx 
 
 [![CI](https://github.com/mgwilt/nx-uv/actions/workflows/ci.yml/badge.svg)](https://github.com/mgwilt/nx-uv/actions/workflows/ci.yml)
 [![Coverage](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/mgwilt/nx-uv/badges/.github/badges/coverage.json)](https://github.com/mgwilt/nx-uv/blob/badges/.github/badges/coverage.json)
-[![npm beta](https://img.shields.io/npm/v/@mgwilt/nx-uv/beta?label=npm%20beta)](https://www.npmjs.com/package/@mgwilt/nx-uv?activeTab=versions)
+[![npm beta](https://img.shields.io/npm/v/%40mgwilt%2Fnx-uv/beta?label=npm%20beta&cacheSeconds=300)](https://www.npmjs.com/package/@mgwilt/nx-uv?activeTab=versions)
 
 ## Coverage model
 
