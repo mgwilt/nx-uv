@@ -371,6 +371,8 @@ Coverage thresholds enforced in `vitest.coverage.config.mts`:
   - typecheck
   - unit tests
   - integration tests
+- `commit-msg` runs:
+  - [Commitlint](https://commitlint.js.org/) on the current commit message
 - `pre-push` runs:
   - full `quality:ci`
 

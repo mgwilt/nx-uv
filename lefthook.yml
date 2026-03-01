@@ -11,6 +11,11 @@ pre-commit:
     test-integration:
       run: pnpm test:integration
 
+commit-msg:
+  commands:
+    commitlint:
+      run: pnpm exec commitlint --edit {1}
+
 pre-push:
   commands:
     quality-ci:
