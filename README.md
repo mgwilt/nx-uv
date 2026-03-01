@@ -44,7 +44,59 @@ Install the plugin:
 pnpm add -D @mgwilt/nx-uv
 ```
 
-## Quick start
+## Brand new monorepo example
+
+This walkthrough creates a new [Nx](https://nx.dev/) monorepo and uses this plugin to scaffold a working [uv](https://docs.astral.sh/uv/) + [Python](https://www.python.org/) example.
+
+1. Create a new workspace:
+
+```bash
+pnpm create nx-workspace@latest acme-monorepo --preset=ts --packageManager=pnpm --nxCloud=skip --interactive=false
+cd acme-monorepo
+```
+
+2. Install this plugin (beta channel) and initialize workspace-level [uv](https://docs.astral.sh/uv/) config:
+
+```bash
+pnpm add -D @mgwilt/nx-uv@beta
+pnpm nx g @mgwilt/nx-uv:workspace --name=acme --membersGlob=packages/py/*
+```
+
+3. Generate a [Python](https://www.python.org/) app and scaffold integrations:
+
+```bash
+pnpm nx g @mgwilt/nx-uv:project api --projectType=app --directory=packages/py
+pnpm nx g @mgwilt/nx-uv:integration --template=fastapi --project=api
+pnpm nx g @mgwilt/nx-uv:integration --template=github
+```
+
+4. Add runtime and dev dependencies with [uv](https://docs.astral.sh/uv/):
+
+```bash
+cd packages/py/api
+uv add fastapi uvicorn
+uv add --dev pytest ruff
+cd ../../..
+```
+
+5. Run plugin-backed targets via [Nx](https://nx.dev/):
+
+```bash
+pnpm nx run api:sync
+pnpm nx run api:uv
+pnpm nx run api:run
+pnpm nx run api:test
+pnpm nx run api:build
+```
+
+At this point you have a working monorepo with:
+
+- Root `pyproject.toml` and [uv](https://docs.astral.sh/uv/) workspace members
+- A generated `api` [Python](https://www.python.org/) project under `packages/py/api`
+- Generated [FastAPI](https://fastapi.tiangolo.com/) starter files and a [GitHub Actions](https://github.com/features/actions) uv workflow template
+- [Nx](https://nx.dev/) targets that run uv commands consistently in CI/local dev
+
+## Quick start (existing workspace)
 
 1. Add the plugin to `nx.json`:
 
