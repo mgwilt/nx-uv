@@ -164,14 +164,12 @@ async function generateSample(outputDir, sample) {
   await workspaceGenerator(tree, {
     name: sample.workspaceName,
     membersGlob: "packages/py/*",
-    skipFormat: true,
   });
 
   await projectGenerator(tree, {
     name: sample.project.name,
     directory: sample.project.directory,
     projectType: sample.project.projectType,
-    skipFormat: true,
   });
 
   for (const template of sample.integrations) {
@@ -180,7 +178,6 @@ async function generateSample(outputDir, sample) {
       ...(WORKSPACE_LEVEL_TEMPLATES.has(template)
         ? {}
         : { project: sample.project.name }),
-      skipFormat: true,
     });
   }
 
