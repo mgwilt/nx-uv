@@ -1,0 +1,9 @@
+stages:
+  - test
+
+test:uv:
+  image: ghcr.io/astral-sh/uv:python3.12-bookworm-slim
+  stage: test
+  script:
+    - uv sync --frozen
+    - uv run -- pytest -q

@@ -1,0 +1,9 @@
+[project]
+name = "acme-ci"
+version = "0.1.0"
+description = "uv workspace root"
+requires-python = ">=3.11"
+dependencies = []
+
+[tool.uv.workspace]
+members = ["packages/py/*"]

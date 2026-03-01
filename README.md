@@ -236,3 +236,4 @@ pnpm nx g @mgwilt/nx-uv:integration --template=pytorch --project=api
 
 - [Documentation index](docs/index.md)
 - [Maintainer guide (quality gates, CI, release)](docs/maintainers.md)
+- [Sample scaffolding patterns](samples/README.md)

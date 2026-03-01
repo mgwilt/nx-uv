@@ -1,0 +1,75 @@
+{
+  "name": "service",
+  "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "packages/py/service/src",
+  "projectType": "application",
+  "tags": [],
+  "targets": {
+    "sync": {
+      "executor": "@mgwilt/nx-uv:project",
+      "options": {
+        "cwd": "packages/py/service",
+        "command": "sync"
+      }
+    },
+    "lock": {
+      "executor": "@mgwilt/nx-uv:project",
+      "options": {
+        "cwd": "packages/py/service",
+        "command": "lock"
+      }
+    },
+    "tree": {
+      "executor": "@mgwilt/nx-uv:project",
+      "options": {
+        "cwd": "packages/py/service",
+        "command": "tree"
+      }
+    },
+    "run": {
+      "executor": "@mgwilt/nx-uv:project",
+      "options": {
+        "cwd": "packages/py/service",
+        "command": "run",
+        "commandArgs": ["--", "python", "-V"]
+      }
+    },
+    "test": {
+      "executor": "@mgwilt/nx-uv:project",
+      "options": {
+        "cwd": "packages/py/service",
+        "command": "run",
+        "commandArgs": ["--", "pytest", "-q"]
+      }
+    },
+    "lint": {
+      "executor": "@mgwilt/nx-uv:project",
+      "options": {
+        "cwd": "packages/py/service",
+        "command": "run",
+        "commandArgs": ["--", "ruff", "check", "."]
+      }
+    },
+    "format": {
+      "executor": "@mgwilt/nx-uv:project",
+      "options": {
+        "cwd": "packages/py/service",
+        "command": "format"
+      }
+    },
+    "build": {
+      "executor": "@mgwilt/nx-uv:project",
+      "options": {
+        "cwd": "packages/py/service",
+        "command": "build"
+      }
+    },
+    "uv": {
+      "executor": "@mgwilt/nx-uv:uv",
+      "options": {
+        "cwd": "packages/py/service",
+        "args": ["help"]
+      }
+    }
+  }
+}

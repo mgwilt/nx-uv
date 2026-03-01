@@ -20,6 +20,7 @@
     "test:coverage": "nx run nx-uv:test-coverage",
     "quality:local": "nx run nx-uv:quality-local",
     "quality:ci": "nx run nx-uv:quality-ci",
+    "samples:generate": "node tools/generate-samples.cjs",
     "hooks:install": "lefthook install",
     "prepare": "lefthook install",
     "release:version": "nx release version --preid beta",
