@@ -107,12 +107,12 @@ jobs:
           if git diff --cached --quiet; then
             if [ "$BRANCH_EXISTS" -eq 0 ]; then
               echo "No badge diff, creating badges branch from current HEAD."
-              git push origin HEAD:badges
+              git -c core.hooksPath=/dev/null push origin HEAD:badges
               exit 0
             fi
             echo "No coverage badge changes to publish."
             exit 0
           fi
 
-          git commit -m "ci(badges): update coverage badge"
-          git push origin HEAD:badges
+          git -c core.hooksPath=/dev/null commit -m "ci(badges): update coverage badge"
+          git -c core.hooksPath=/dev/null push origin HEAD:badges
