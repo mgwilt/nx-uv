@@ -22,3 +22,9 @@ pnpm nx g @mgwilt/nx-uv:python-package shared
 pnpm nx run shared:sync
 pnpm nx run shared:test
 ```
+
+## Releasing
+
+- Releases are done with `.github/workflows/release.yml` using npm Trusted Publishing (OIDC).
+- One-time npm setup is required: add this repository/workflow as a trusted publisher for `@mgwilt/nx-uv` in npm settings.
+- `NPM_ACCESS_TOKEN` is not required.
