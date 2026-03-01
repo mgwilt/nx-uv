@@ -32,9 +32,9 @@ Coverage thresholds enforced in `vitest.coverage.config.mts`:
 
 ## Git hooks
 
-Lefthook is auto-installed via `prepare`.
+[Lefthook](https://lefthook.dev/) is auto-installed via `prepare`.
 
-- `pre-commit` runs:
+- [`pre-commit`](https://pre-commit.com/) runs:
   - format check
   - lint
   - typecheck
@@ -53,7 +53,7 @@ Lefthook is auto-installed via `prepare`.
 - `release.yml`
   - Manual prerelease flow (`beta` channel)
 - `commitlint.yml`
-  - Conventional commit message validation for PRs
+  - [Conventional Commits](https://www.conventionalcommits.org/) message validation for PRs
 
 ## Coverage badge pipeline
 
@@ -65,7 +65,7 @@ Lefthook is auto-installed via `prepare`.
 
 ## Release process (pre-v1)
 
-The project currently ships prereleases to npm.
+The project currently ships prereleases to [npm](https://www.npmjs.com/).
 
 - Version bump (preid):
   - `pnpm release:version`
@@ -74,5 +74,5 @@ The project currently ships prereleases to npm.
 
 Current release policy:
 
-- npm dist-tag: `beta`
+- [npm](https://www.npmjs.com/) dist-tag: `beta`
 - Stable `latest` should not be the default path until v1 planning changes.
