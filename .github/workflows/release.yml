@@ -124,15 +124,18 @@ jobs:
           NODE
 
       - name: Publish release to npm (Trusted Publishing)
-        if: ${{ env.NPM_ACCESS_TOKEN == '' }}
-        run: pnpm nx release publish --tag ${{ steps.release_tag.outputs.npm_tag }}
+        id: publish_npm_trusted
+        continue-on-error: true
+        run: pnpm nx release publish --tag ${{ steps.release_tag.outputs.npm_tag }} --access public
         env:
           NPM_CONFIG_PROVENANCE: true
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Publish release to npm (Token Fallback)
-        if: ${{ env.NPM_ACCESS_TOKEN != '' }}
-        run: pnpm nx release publish --tag ${{ steps.release_tag.outputs.npm_tag }}
+        id: publish_npm_token
+        if: ${{ env.NPM_ACCESS_TOKEN != '' && steps.publish_npm_trusted.outcome != 'success' }}
+        continue-on-error: true
+        run: pnpm nx release publish --tag ${{ steps.release_tag.outputs.npm_tag }} --access public
         env:
           NODE_AUTH_TOKEN: ${{ env.NPM_ACCESS_TOKEN }}
           NPM_CONFIG_PROVENANCE: true
@@ -168,3 +171,12 @@ jobs:
           else
             gh release create "$TAG" --repo "$GITHUB_REPOSITORY" --generate-notes
           fi
+
+      - name: Verify npm publish succeeded
+        if: ${{ steps.publish_npm_trusted.outcome != 'success' && steps.publish_npm_token.outcome != 'success' }}
+        run: |
+          echo "npm publish failed with both methods."
+          echo "Trusted Publishing outcome: ${{ steps.publish_npm_trusted.outcome }}"
+          echo "Token Fallback outcome: ${{ steps.publish_npm_token.outcome }}"
+          echo "Rotate NPM_ACCESS_TOKEN or configure npm Trusted Publishing for this repo and rerun."
+          exit 1
