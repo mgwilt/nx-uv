@@ -125,7 +125,7 @@ jobs:
       - name: Run coverage target
         run: pnpm nx run nx-uv:test-coverage --outputStyle=static
 
-      - name: Generate coverage badge payload
+      - name: Generate coverage badge payloads
         run: pnpm coverage:badge
 
       - name: Configure git author
@@ -133,7 +133,7 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-      - name: Publish coverage badge to badges branch
+      - name: Publish coverage badges to badges branch
         run: |
           set -euo pipefail
 
@@ -153,11 +153,12 @@ jobs:
             git worktree add -b badges "$BADGE_WORKTREE"
           fi
 
+          rm -rf "$BADGE_WORKTREE/.github/badges"
           mkdir -p "$BADGE_WORKTREE/.github/badges"
-          cp .github/badges/coverage.json "$BADGE_WORKTREE/.github/badges/coverage.json"
+          cp .github/badges/*.json "$BADGE_WORKTREE/.github/badges/"
 
           cd "$BADGE_WORKTREE"
-          git add .github/badges/coverage.json
+          git add -A .github/badges
 
           if git diff --cached --quiet; then
             if [ "$BRANCH_EXISTS" -eq 0 ]; then
@@ -169,5 +170,5 @@ jobs:
             exit 0
           fi
 
-          git -c core.hooksPath=/dev/null commit -m "ci(badges): update coverage badge"
+          git -c core.hooksPath=/dev/null commit -m "ci(badges): update coverage badges"
           git -c core.hooksPath=/dev/null push origin HEAD:badges

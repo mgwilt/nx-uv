@@ -92,7 +92,7 @@ Coverage thresholds enforced in `vitest.coverage.config.mts`:
 - `llms.yml`
   - Validates `llms.txt` and `llms-full.txt` drift for docs/automation-related PRs/pushes
 - `release.yml`
-  - Manual prerelease flow (`beta` channel)
+  - Manual channel-aware release flow (stable default, optional `beta` channel)
 - `commitlint.yml`
   - [Conventional Commits](https://www.conventionalcommits.org/) message validation for PRs
 
@@ -101,13 +101,19 @@ Additional references:
 - Toolchain policy: [`toolchain-matrix.md`](toolchain-matrix.md)
 - Bootstrap incident runbook: [`runbooks/gate-bootstrap-failure.md`](runbooks/gate-bootstrap-failure.md)
 
-## Coverage badge pipeline
+## Coverage badges pipeline
 
 1. `test:coverage` writes `coverage/coverage-summary.json`.
-2. `coverage:badge` generates `.github/badges/coverage.json`.
+2. `coverage:badge` generates:
+   - `.github/badges/coverage-lines.json`
+   - `.github/badges/coverage-functions.json`
+   - `.github/badges/coverage-statements.json`
+   - `.github/badges/coverage-branches.json`
+   - `.github/badges/coverage-floor.json`
+   - `.github/badges/coverage.json` (legacy alias to floor)
 3. CI publishes badge content to the `badges` branch.
-4. README coverage badge reads from:
-   - `https://raw.githubusercontent.com/mgwilt/nx-uv/badges/.github/badges/coverage.json`
+4. README coverage badges read from:
+   - `https://raw.githubusercontent.com/mgwilt/nx-uv/badges/.github/badges/*.json`
 
 ## Release process
 

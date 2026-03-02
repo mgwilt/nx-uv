@@ -92,7 +92,7 @@
       "executor": "nx:run-commands",
       "dependsOn": ["build", "test-coverage"],
       "options": {
-        "command": "node dist/src/tools/coverage-badge.js --summary coverage/coverage-summary.json --output .github/badges/coverage.json"
+        "command": "node dist/src/tools/coverage-badge.js --summary coverage/coverage-summary.json --output-dir .github/badges --legacy-output .github/badges/coverage.json"
       }
     },
     "llms-generate": {

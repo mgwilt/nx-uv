@@ -15,7 +15,11 @@ Source: https://github.com/mgwilt/nx-uv/blob/main/README.md
 [Nx](https://nx.dev/) plugin for running [uv](https://docs.astral.sh/uv/) workflows in [Nx](https://nx.dev/) monorepos.
 
 [![CI](https://github.com/mgwilt/nx-uv/actions/workflows/ci.yml/badge.svg)](https://github.com/mgwilt/nx-uv/actions/workflows/ci.yml)
-[![Coverage](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/mgwilt/nx-uv/badges/.github/badges/coverage.json)](https://github.com/mgwilt/nx-uv/blob/badges/.github/badges/coverage.json)
+[![Coverage lines](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/mgwilt/nx-uv/badges/.github/badges/coverage-lines.json)](https://github.com/mgwilt/nx-uv/blob/badges/.github/badges/coverage-lines.json)
+[![Coverage functions](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/mgwilt/nx-uv/badges/.github/badges/coverage-functions.json)](https://github.com/mgwilt/nx-uv/blob/badges/.github/badges/coverage-functions.json)
+[![Coverage statements](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/mgwilt/nx-uv/badges/.github/badges/coverage-statements.json)](https://github.com/mgwilt/nx-uv/blob/badges/.github/badges/coverage-statements.json)
+[![Coverage branches](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/mgwilt/nx-uv/badges/.github/badges/coverage-branches.json)](https://github.com/mgwilt/nx-uv/blob/badges/.github/badges/coverage-branches.json)
+[![Coverage floor](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/mgwilt/nx-uv/badges/.github/badges/coverage-floor.json)](https://github.com/mgwilt/nx-uv/blob/badges/.github/badges/coverage-floor.json)
 [![npm release](https://img.shields.io/npm/v/%40mgwilt%2Fnx-uv/latest?label=npm%20release&cacheSeconds=300)](https://www.npmjs.com/package/@mgwilt/nx-uv?activeTab=versions)
 
 ## Why this plugin exists
@@ -373,7 +377,7 @@ Source: https://github.com/mgwilt/nx-uv/blob/main/docs/index.md
 
 ## For maintainers
 
-- Repository operations, quality gates, hooks, CI, coverage badge publishing, and release process:
+- Repository operations, quality gates, hooks, CI, coverage badges publishing, and release process:
   - [`maintainers.md`](maintainers.md)
 - Supported Node/pnpm/Nx validation matrix for quality gates:
   - [`toolchain-matrix.md`](toolchain-matrix.md)
@@ -512,7 +516,7 @@ Coverage thresholds enforced in `vitest.coverage.config.mts`:
 - `llms.yml`
   - Validates `llms.txt` and `llms-full.txt` drift for docs/automation-related PRs/pushes
 - `release.yml`
-  - Manual prerelease flow (`beta` channel)
+  - Manual channel-aware release flow (stable default, optional `beta` channel)
 - `commitlint.yml`
   - [Conventional Commits](https://www.conventionalcommits.org/) message validation for PRs
 
@@ -521,13 +525,19 @@ Additional references:
 - Toolchain policy: [`toolchain-matrix.md`](toolchain-matrix.md)
 - Bootstrap incident runbook: [`runbooks/gate-bootstrap-failure.md`](runbooks/gate-bootstrap-failure.md)
 
-## Coverage badge pipeline
+## Coverage badges pipeline
 
 1. `test:coverage` writes `coverage/coverage-summary.json`.
-2. `coverage:badge` generates `.github/badges/coverage.json`.
+2. `coverage:badge` generates:
+   - `.github/badges/coverage-lines.json`
+   - `.github/badges/coverage-functions.json`
+   - `.github/badges/coverage-statements.json`
+   - `.github/badges/coverage-branches.json`
+   - `.github/badges/coverage-floor.json`
+   - `.github/badges/coverage.json` (legacy alias to floor)
 3. CI publishes badge content to the `badges` branch.
-4. README coverage badge reads from:
-   - `https://raw.githubusercontent.com/mgwilt/nx-uv/badges/.github/badges/coverage.json`
+4. README coverage badges read from:
+   - `https://raw.githubusercontent.com/mgwilt/nx-uv/badges/.github/badges/*.json`
 
 ## Release process
 

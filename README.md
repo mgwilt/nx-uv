@@ -3,7 +3,11 @@
 [Nx](https://nx.dev/) plugin for running [uv](https://docs.astral.sh/uv/) workflows in [Nx](https://nx.dev/) monorepos.
 
 [![CI](https://github.com/mgwilt/nx-uv/actions/workflows/ci.yml/badge.svg)](https://github.com/mgwilt/nx-uv/actions/workflows/ci.yml)
-[![Coverage](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/mgwilt/nx-uv/badges/.github/badges/coverage.json)](https://github.com/mgwilt/nx-uv/blob/badges/.github/badges/coverage.json)
+[![Coverage lines](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/mgwilt/nx-uv/badges/.github/badges/coverage-lines.json)](https://github.com/mgwilt/nx-uv/blob/badges/.github/badges/coverage-lines.json)
+[![Coverage functions](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/mgwilt/nx-uv/badges/.github/badges/coverage-functions.json)](https://github.com/mgwilt/nx-uv/blob/badges/.github/badges/coverage-functions.json)
+[![Coverage statements](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/mgwilt/nx-uv/badges/.github/badges/coverage-statements.json)](https://github.com/mgwilt/nx-uv/blob/badges/.github/badges/coverage-statements.json)
+[![Coverage branches](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/mgwilt/nx-uv/badges/.github/badges/coverage-branches.json)](https://github.com/mgwilt/nx-uv/blob/badges/.github/badges/coverage-branches.json)
+[![Coverage floor](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/mgwilt/nx-uv/badges/.github/badges/coverage-floor.json)](https://github.com/mgwilt/nx-uv/blob/badges/.github/badges/coverage-floor.json)
 [![npm release](https://img.shields.io/npm/v/%40mgwilt%2Fnx-uv/latest?label=npm%20release&cacheSeconds=300)](https://www.npmjs.com/package/@mgwilt/nx-uv?activeTab=versions)
 
 ## Why this plugin exists
