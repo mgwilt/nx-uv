@@ -1,18 +1,28 @@
 #!/usr/bin/env node
 "use strict";
 
-require("@swc-node/register");
-
 const fs = require("node:fs");
 const path = require("node:path");
-const { createTreeWithEmptyWorkspace } = require("@nx/devkit/testing");
-const {
-  workspaceGenerator,
-} = require("../src/generators/workspace/workspace.ts");
-const { projectGenerator } = require("../src/generators/project/project.ts");
-const {
-  integrationGenerator,
-} = require("../src/generators/integration/integration.ts");
+
+/* v8 ignore next -- runtime dependency wiring for direct CLI execution */
+function resolveGeneratorDependencies() {
+  require("@swc-node/register");
+  const { createTreeWithEmptyWorkspace } = require("@nx/devkit/testing");
+  const {
+    workspaceGenerator,
+  } = require("../src/generators/workspace/workspace.ts");
+  const { projectGenerator } = require("../src/generators/project/project.ts");
+  const {
+    integrationGenerator,
+  } = require("../src/generators/integration/integration.ts");
+
+  return {
+    createTreeWithEmptyWorkspace,
+    workspaceGenerator,
+    projectGenerator,
+    integrationGenerator,
+  };
+}
 
 const REPO_ROOT = path.resolve(__dirname, "..");
 const SAMPLES_ROOT = path.join(REPO_ROOT, "samples");
@@ -135,30 +145,68 @@ const SAMPLE_DEFINITIONS = [
   },
 ];
 
-async function main() {
-  ensureDir(SAMPLES_ROOT);
-  removeManagedSamples();
+async function main(options = {}) {
+  const {
+    samplesRoot = SAMPLES_ROOT,
+    sampleDefinitions = SAMPLE_DEFINITIONS,
+    pathModule = path,
+    fileSystem = fs,
+    writeStdout = (value) => process.stdout.write(value),
+    generateSampleImpl = generateSample,
+    renderSamplesIndexImpl = renderSamplesIndex,
+  } = options;
 
-  for (const sample of SAMPLE_DEFINITIONS) {
-    const outputDir = path.join(SAMPLES_ROOT, sample.slug);
-    ensureDir(outputDir);
-    await generateSample(outputDir, sample);
+  ensureDir(samplesRoot, fileSystem);
+  removeManagedSamples(samplesRoot, sampleDefinitions, fileSystem, pathModule);
+
+  for (const sample of sampleDefinitions) {
+    const outputDir = pathModule.join(samplesRoot, sample.slug);
+    ensureDir(outputDir, fileSystem);
+    await generateSampleImpl(
+      outputDir,
+      sample,
+      undefined,
+      fileSystem,
+      pathModule,
+    );
   }
 
-  writeFile(path.join(SAMPLES_ROOT, "README.md"), renderSamplesIndex());
-  process.stdout.write(
-    `Generated ${SAMPLE_DEFINITIONS.length} samples in samples/.\n`,
+  writeFile(
+    pathModule.join(samplesRoot, "README.md"),
+    renderSamplesIndexImpl(sampleDefinitions),
+    fileSystem,
+    pathModule,
+  );
+  writeStdout(
+    `Generated ${sampleDefinitions.length} samples in ${samplesRoot}.\n`,
   );
 }
 
-function removeManagedSamples() {
-  for (const sample of SAMPLE_DEFINITIONS) {
-    const sampleDir = path.join(SAMPLES_ROOT, sample.slug);
-    fs.rmSync(sampleDir, { recursive: true, force: true });
+function removeManagedSamples(
+  samplesRoot = SAMPLES_ROOT,
+  sampleDefinitions = SAMPLE_DEFINITIONS,
+  fileSystem = fs,
+  pathModule = path,
+) {
+  for (const sample of sampleDefinitions) {
+    const sampleDir = pathModule.join(samplesRoot, sample.slug);
+    fileSystem.rmSync(sampleDir, { recursive: true, force: true });
   }
 }
 
-async function generateSample(outputDir, sample) {
+async function generateSample(
+  outputDir,
+  sample,
+  generatorDependencies = resolveGeneratorDependencies(),
+  fileSystem = fs,
+  pathModule = path,
+) {
+  const {
+    createTreeWithEmptyWorkspace,
+    workspaceGenerator,
+    projectGenerator,
+    integrationGenerator,
+  } = generatorDependencies;
   const tree = createTreeWithEmptyWorkspace();
 
   await workspaceGenerator(tree, {
@@ -182,8 +230,13 @@ async function generateSample(outputDir, sample) {
   }
 
   customizePackageJson(tree, sample);
-  applyTreeToFs(tree, outputDir);
-  writeFile(path.join(outputDir, "README.md"), renderSampleReadme(sample));
+  applyTreeToFs(tree, outputDir, fileSystem, pathModule);
+  writeFile(
+    pathModule.join(outputDir, "README.md"),
+    renderSampleReadme(sample),
+    fileSystem,
+    pathModule,
+  );
 }
 
 function customizePackageJson(tree, sample) {
@@ -202,24 +255,24 @@ function customizePackageJson(tree, sample) {
   tree.write("package.json", `${JSON.stringify(pkg, null, 2)}\n`);
 }
 
-function applyTreeToFs(tree, outputDir) {
+function applyTreeToFs(tree, outputDir, fileSystem = fs, pathModule = path) {
   for (const change of tree.listChanges()) {
-    const absolute = path.join(outputDir, change.path);
+    const absolute = pathModule.join(outputDir, change.path);
 
     if (change.type === "DELETE") {
-      fs.rmSync(absolute, { recursive: true, force: true });
+      fileSystem.rmSync(absolute, { recursive: true, force: true });
       continue;
     }
 
-    ensureDir(path.dirname(absolute));
+    ensureDir(pathModule.dirname(absolute), fileSystem);
     const content = Buffer.isBuffer(change.content)
       ? change.content
       : Buffer.from(change.content);
-    fs.writeFileSync(absolute, content);
+    fileSystem.writeFileSync(absolute, content);
   }
 }
 
-function renderSamplesIndex() {
+function renderSamplesIndex(sampleDefinitions = SAMPLE_DEFINITIONS) {
   const lines = [
     "# Samples",
     "",
@@ -235,7 +288,7 @@ function renderSamplesIndex() {
     "",
   ];
 
-  for (const sample of SAMPLE_DEFINITIONS) {
+  for (const sample of sampleDefinitions) {
     lines.push(`- [\`${sample.slug}\`](${sample.slug}/README.md)`);
     lines.push(`  - ${sample.summary}`);
   }
@@ -249,7 +302,10 @@ function renderSamplesIndex() {
   return lines.join("\n");
 }
 
-function renderSampleReadme(sample) {
+function renderSampleReadme(
+  sample,
+  workspaceLevelTemplates = WORKSPACE_LEVEL_TEMPLATES,
+) {
   const commandLines = [
     `pnpm create nx-workspace@latest ${sample.workspaceDir} --preset=ts --packageManager=pnpm --nxCloud=skip --interactive=false`,
     `cd ${sample.workspaceDir}`,
@@ -257,7 +313,7 @@ function renderSampleReadme(sample) {
     `pnpm nx g @mgwilt/nx-uv:workspace --name=${sample.workspaceName} --membersGlob='packages/py/*'`,
     `pnpm nx g @mgwilt/nx-uv:project ${sample.project.name} --projectType=${sample.project.projectType} --directory=${sample.project.directory}`,
     ...sample.integrations.map((template) =>
-      WORKSPACE_LEVEL_TEMPLATES.has(template)
+      workspaceLevelTemplates.has(template)
         ? `pnpm nx g @mgwilt/nx-uv:integration --template=${template}`
         : `pnpm nx g @mgwilt/nx-uv:integration --template=${template} --project=${sample.project.name}`,
     ),
@@ -286,16 +342,43 @@ function renderSampleReadme(sample) {
   ].join("\n");
 }
 
-function ensureDir(targetDir) {
-  fs.mkdirSync(targetDir, { recursive: true });
+function ensureDir(targetDir, fileSystem = fs) {
+  fileSystem.mkdirSync(targetDir, { recursive: true });
 }
 
-function writeFile(filePath, content) {
-  ensureDir(path.dirname(filePath));
-  fs.writeFileSync(filePath, content.replace(/\r\n/g, "\n"), "utf-8");
+function writeFile(filePath, content, fileSystem = fs, pathModule = path) {
+  ensureDir(pathModule.dirname(filePath), fileSystem);
+  fileSystem.writeFileSync(filePath, content.replace(/\r\n/g, "\n"), "utf-8");
 }
 
-main().catch((error) => {
-  process.stderr.write(`${error?.stack ?? String(error)}\n`);
-  process.exitCode = 1;
-});
+async function runGenerateSamplesCli(runner = main) {
+  try {
+    await runner();
+    return true;
+  } catch (error) {
+    process.stderr.write(`${error?.stack ?? String(error)}\n`);
+    process.exitCode = 1;
+    return false;
+  }
+}
+
+/* v8 ignore next -- only exercised when invoked directly as a CLI */
+if (require.main === module) {
+  runGenerateSamplesCli();
+}
+
+module.exports = {
+  SAMPLE_DEFINITIONS,
+  WORKSPACE_LEVEL_TEMPLATES,
+  resolveGeneratorDependencies,
+  main,
+  removeManagedSamples,
+  generateSample,
+  customizePackageJson,
+  applyTreeToFs,
+  renderSamplesIndex,
+  renderSampleReadme,
+  ensureDir,
+  writeFile,
+  runGenerateSamplesCli,
+};
