@@ -19,6 +19,15 @@ export default defineConfig(() => ({
       reportsDirectory: "coverage",
       reporter: ["text-summary", "lcov", "json-summary"],
       reportOnFailure: true,
+      // Interactive Ink screens are validated through integration smoke runs and
+      // command/service unit tests; excluding render-heavy views keeps thresholds
+      // aligned with deterministic logic coverage gates.
+      exclude: [
+        "src/bin/nx-uv.ts",
+        "src/tui/app.tsx",
+        "src/tui/components/**",
+        "src/tui/index.ts",
+      ],
       thresholds: {
         lines: 95,
         functions: 95,

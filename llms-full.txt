@@ -46,6 +46,7 @@ Nx provides a consistent task graph, caching, and affected-based CI so large rep
   - `@mgwilt/nx-uv:auth`
   - `@mgwilt/nx-uv:cache`
   - `@mgwilt/nx-uv:self`
+  - `@mgwilt/nx-uv:studio`
 - Generators:
   - `@mgwilt/nx-uv:workspace`
   - `@mgwilt/nx-uv:project`
@@ -65,6 +66,38 @@ Install the plugin:
 ```bash
 pnpm add -D @mgwilt/nx-uv
 ```
+
+## Interactive studio (TUI)
+
+Launch the interactive monorepo manager directly with `pnpm dlx` (recommended):
+
+```bash
+pnpm dlx -p @mgwilt/nx-uv nx-uv tui
+```
+
+Shorthand (when supported by your pnpm version/environment):
+
+```bash
+pnpm dlx @mgwilt/nx-uv tui
+```
+
+The studio provides:
+
+- Workspace setup and inference configuration
+- Python app/lib/script generation
+- Integration template scaffolding
+- Convert existing projects to nx-uv defaults
+- Nx target execution across all projects
+- Ad-hoc `uv` command execution
+- Preview-before-apply flow for mutating actions
+
+Optional flags:
+
+- `--cwd=<path>` scan and manage a workspace from a specific directory
+- `--readonly` disable mutation/apply operations
+- `--initial-view=<dashboard|workspace|project|integration|convert|inference|tasks|uv>`
+
+If plugin inference is configured with `includeGlobalTargets: true` and a root uv workspace exists, the root inferred project also gets a `<targetPrefix>tui` target (for example `uv:tui`).
 
 ## Brand new monorepo example
 
