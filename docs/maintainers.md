@@ -29,6 +29,27 @@ This document covers repository operations and internal workflows. End-user usag
 - Full strict gate:
   - `pnpm quality:ci`
 
+Troubleshooting when Nx plugin bootstrap fails before tasks execute:
+
+- `pnpm nx report`
+- `pnpm nx reset`
+- `NX_DAEMON=false pnpm quality:ci`
+
+Fallback direct checks (to isolate Nx bootstrap issues from plugin logic):
+
+- `pnpm exec eslint .`
+- `pnpm exec tsc -p tsconfig.lib.json --noEmit`
+- `pnpm exec tsc -p tsconfig.spec.json --noEmit`
+- `pnpm exec vitest run -c vitest.unit.config.mts`
+- `pnpm exec vitest run -c vitest.integration.config.mts`
+- `pnpm exec vitest run -c vitest.e2e.config.mts`
+- `pnpm exec vitest run -c vitest.coverage.config.mts`
+
+E2E note:
+
+- `e2e/project-executor.e2e.spec.ts` now probes whether local executable shims can run.
+- In restricted environments (`EPERM`/`EACCES` spawn failures), the e2e cases are skipped with a warning instead of producing misleading assertion failures.
+
 Coverage thresholds enforced in `vitest.coverage.config.mts`:
 
 - Lines: `95`

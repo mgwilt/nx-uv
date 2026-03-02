@@ -257,8 +257,36 @@ pnpm nx g @mgwilt/nx-uv:integration --template=pytorch --project=api
 ## Compatibility and versioning
 
 - Runtime [uv](https://docs.astral.sh/uv/) compatibility checks verify that `uv` is available and executable.
-- `uv 0.9.x` is currently the tested range. Other versions log a warning and continue.
+- `uv 0.9.x` and `0.10.x` are currently the tested ranges. Other versions log a warning and continue.
 - This package is pre-v1 and published on the [npm](https://www.npmjs.com/) `beta` dist-tag.
+
+## Troubleshooting
+
+### Nx plugin bootstrap failures
+
+If `quality:ci` fails before running tasks with worker/bootstrap errors (for example `Failed to load ... Nx plugin(s)`), run:
+
+```bash
+pnpm nx report
+pnpm nx reset
+NX_DAEMON=false pnpm quality:ci
+```
+
+If bootstrap still fails, run direct checks to isolate whether the issue is Nx plugin startup or project logic:
+
+```bash
+pnpm exec eslint .
+pnpm exec tsc -p tsconfig.lib.json --noEmit
+pnpm exec tsc -p tsconfig.spec.json --noEmit
+pnpm exec vitest run -c vitest.unit.config.mts
+pnpm exec vitest run -c vitest.integration.config.mts
+pnpm exec vitest run -c vitest.e2e.config.mts
+pnpm exec vitest run -c vitest.coverage.config.mts
+```
+
+### E2E execution permissions
+
+The e2e suite executes a temporary shim binary from the local filesystem. In restricted environments (for example `noexec` mounts or sandboxed process policies), e2e tests may be skipped when executable spawning is not permitted.
 
 ## LLM context files
 

@@ -1,5 +1,0 @@
-"""<%= packageName %> package."""
-
-
-def hello() -> str:
-    return "hello from <%= moduleName %>"
