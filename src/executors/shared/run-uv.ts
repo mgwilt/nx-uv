@@ -3,7 +3,7 @@ import * as childProcess from "child_process";
 import * as path from "path";
 import { UvBaseExecutorSchema } from "./options";
 
-const TESTED_UV_VERSION = /^0\.9\./;
+const TESTED_UV_VERSION = /^0\.(9|10)\./;
 
 type UvCommandResult = { success: boolean };
 
@@ -195,7 +195,7 @@ function assertUvVersion(cwd: string): VersionCheckResult {
   if (!TESTED_UV_VERSION.test(version)) {
     return {
       ok: true,
-      warning: `uv version ${version} is outside the tested range (0.9.x). Proceeding with command execution.`,
+      warning: `uv version ${version} is outside the tested range (0.9.x, 0.10.x). Proceeding with command execution.`,
     };
   }
 

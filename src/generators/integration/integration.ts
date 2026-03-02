@@ -286,7 +286,7 @@ print(pd.DataFrame({"hello": ["uv"]}))
         },
       ];
     default:
-      return [];
+      throw new Error(`Unsupported integration template: ${template}`);
   }
 }
 

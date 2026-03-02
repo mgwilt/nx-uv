@@ -183,15 +183,12 @@ describe("integration generator", () => {
     expect(tree.exists(".github/dependabot.yml")).toBe(true);
   });
 
-  it("does nothing for unsupported template values", async () => {
-    const changesBefore = tree.listChanges().length;
-
-    await integrationGenerator(tree, {
-      template: "unsupported-template" as IntegrationTemplate,
-      skipFormat: true,
-    });
-
-    const changesAfter = tree.listChanges().length;
-    expect(changesAfter).toBe(changesBefore);
+  it("throws for unsupported template values", async () => {
+    await expect(
+      integrationGenerator(tree, {
+        template: "unsupported-template" as IntegrationTemplate,
+        skipFormat: true,
+      }),
+    ).rejects.toThrow("Unsupported integration template: unsupported-template");
   });
 });

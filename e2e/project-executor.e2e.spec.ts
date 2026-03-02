@@ -6,15 +6,18 @@ import {
   rmSync,
   writeFileSync,
 } from "node:fs";
+import { spawnSync } from "node:child_process";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
 import { ExecutorContext } from "@nx/devkit";
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeAll, beforeEach, describe, expect, it } from "vitest";
 
 import executor from "../src/executors/project/project";
 
 const tempRoots: string[] = [];
+
+type ShimProbeResult = { ok: true } | { ok: false; reason: string };
 
 function createContext(workspaceRoot: string): ExecutorContext {
   return {
@@ -70,8 +73,50 @@ process.exit(0);
   chmodSync(binPath, 0o755);
 }
 
+function probeExecutableShimSupport(): ShimProbeResult {
+  const probeRoot = mkdtempSync(join(tmpdir(), "nx-uv-e2e-probe-"));
+
+  try {
+    const probePath = join(probeRoot, "uv-probe");
+    writeFileSync(
+      probePath,
+      "#!/usr/bin/env node\nprocess.exit(0);\n",
+      "utf-8",
+    );
+    chmodSync(probePath, 0o755);
+
+    const result = spawnSync(probePath, [], { stdio: "pipe" });
+
+    if (result.error) {
+      return { ok: false, reason: result.error.message };
+    }
+
+    if (result.status !== 0) {
+      return {
+        ok: false,
+        reason: `probe exited with status ${result.status}`,
+      };
+    }
+
+    return { ok: true };
+  } finally {
+    rmSync(probeRoot, { recursive: true, force: true });
+  }
+}
+
+const shimProbe = probeExecutableShimSupport();
+const e2eTest = shimProbe.ok ? it : it.skip;
+
 describe("project executor e2e", () => {
   const originalPath = process.env.PATH ?? "";
+
+  beforeAll(() => {
+    if (!shimProbe.ok) {
+      console.warn(
+        `Skipping project executor e2e: executable shim probe failed (${shimProbe.reason}).`,
+      );
+    }
+  });
 
   beforeEach(() => {
     delete process.env.UV_FAKE_VERSION;
@@ -90,47 +135,50 @@ describe("project executor e2e", () => {
     }
   });
 
-  it("executes uv using PATH and forwards command arguments and env vars", async () => {
-    const workspaceRoot = mkdtempSync(join(tmpdir(), "nx-uv-e2e-"));
-    tempRoots.push(workspaceRoot);
+  e2eTest(
+    "executes uv using PATH and forwards command arguments and env vars",
+    async () => {
+      const workspaceRoot = mkdtempSync(join(tmpdir(), "nx-uv-e2e-"));
+      tempRoots.push(workspaceRoot);
 
-    const packageRoot = join(workspaceRoot, "packages/py/shared");
-    const binRoot = join(workspaceRoot, "bin");
-    mkdirSync(packageRoot, { recursive: true });
-    mkdirSync(binRoot, { recursive: true });
+      const packageRoot = join(workspaceRoot, "packages/py/shared");
+      const binRoot = join(workspaceRoot, "bin");
+      mkdirSync(packageRoot, { recursive: true });
+      mkdirSync(binRoot, { recursive: true });
 
-    const uvPath = join(binRoot, "uv");
-    writeFakeUvBinary(uvPath);
+      const uvPath = join(binRoot, "uv");
+      writeFakeUvBinary(uvPath);
 
-    const logFile = join(workspaceRoot, "uv-command-log.json");
+      const logFile = join(workspaceRoot, "uv-command-log.json");
 
-    process.env.PATH = `${binRoot}:${originalPath}`;
-    process.env.UV_FAKE_LOG_FILE = logFile;
+      process.env.PATH = `${binRoot}:${originalPath}`;
+      process.env.UV_FAKE_LOG_FILE = logFile;
 
-    const result = await executor(
-      {
-        command: "run",
-        commandArgs: ["--", "python", "-V"],
-        env: {
-          TEST_FLAG: "enabled",
+      const result = await executor(
+        {
+          command: "run",
+          commandArgs: ["--", "python", "-V"],
+          env: {
+            TEST_FLAG: "enabled",
+          },
         },
-      },
-      createContext(workspaceRoot),
-    );
+        createContext(workspaceRoot),
+      );
 
-    const logged = JSON.parse(readFileSync(logFile, "utf-8")) as {
-      cwd: string;
-      args: string[];
-      testFlag: string | null;
-    };
+      const logged = JSON.parse(readFileSync(logFile, "utf-8")) as {
+        cwd: string;
+        args: string[];
+        testFlag: string | null;
+      };
 
-    expect(result.success).toBe(true);
-    expect(logged.cwd).toBe(packageRoot);
-    expect(logged.args).toEqual(["run", "--", "python", "-V"]);
-    expect(logged.testFlag).toBe("enabled");
-  });
+      expect(result.success).toBe(true);
+      expect(logged.cwd).toBe(packageRoot);
+      expect(logged.args).toEqual(["run", "--", "python", "-V"]);
+      expect(logged.testFlag).toBe("enabled");
+    },
+  );
 
-  it("continues when uv version is outside tested range", async () => {
+  e2eTest("continues when uv version is outside tested range", async () => {
     const workspaceRoot = mkdtempSync(join(tmpdir(), "nx-uv-e2e-"));
     tempRoots.push(workspaceRoot);
 
