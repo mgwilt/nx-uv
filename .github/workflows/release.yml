@@ -92,6 +92,21 @@ jobs:
             echo "npm_tag=latest" >> "$GITHUB_OUTPUT"
           fi
 
+      - name: Sanitize dist package lifecycle scripts for publish
+        run: |
+          node <<'NODE'
+          const fs = require("node:fs");
+          const path = "dist/package.json";
+          const pkg = JSON.parse(fs.readFileSync(path, "utf-8"));
+
+          if (pkg.scripts && typeof pkg.scripts === "object") {
+            delete pkg.scripts.prepare;
+            delete pkg.scripts["hooks:install"];
+          }
+
+          fs.writeFileSync(path, `${JSON.stringify(pkg, null, 2)}\n`, "utf-8");
+          NODE
+
       - name: Publish release to npm (Trusted Publishing)
         if: ${{ env.NPM_ACCESS_TOKEN == '' }}
         run: pnpm nx release publish --tag ${{ steps.release_tag.outputs.npm_tag }}
