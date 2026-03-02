@@ -2,6 +2,19 @@ name: Release
 
 on:
   workflow_dispatch:
+    inputs:
+      channel:
+        description: Release channel
+        required: true
+        type: choice
+        options:
+          - beta
+          - stable
+        default: beta
+      version:
+        description: Optional exact version (for example 0.2.0)
+        required: false
+        type: string
 
 jobs:
   release:
@@ -39,21 +52,37 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-      - name: Version prerelease from conventional commits
-        run: pnpm nx release version --preid beta --git-commit --git-tag --git-push
+      - name: Version release from conventional commits
+        run: |
+          if [ -n "${{ inputs.version }}" ]; then
+            pnpm nx release version "${{ inputs.version }}" --git-commit --git-tag --git-push
+          elif [ "${{ inputs.channel }}" = "beta" ]; then
+            pnpm nx release version --preid beta --git-commit --git-tag --git-push
+          else
+            pnpm nx release version --git-commit --git-tag --git-push
+          fi
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Resolve release tag
+        id: release_tag
+        run: |
+          if [ "${{ inputs.channel }}" = "beta" ]; then
+            echo "npm_tag=beta" >> "$GITHUB_OUTPUT"
+          else
+            echo "npm_tag=latest" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Publish prerelease to npm (Trusted Publishing)
         if: ${{ env.NPM_ACCESS_TOKEN == '' }}
-        run: pnpm nx release publish --tag beta
+        run: pnpm nx release publish --tag ${{ steps.release_tag.outputs.npm_tag }}
         env:
           NPM_CONFIG_PROVENANCE: true
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Publish prerelease to npm (Token Fallback)
         if: ${{ env.NPM_ACCESS_TOKEN != '' }}
-        run: pnpm nx release publish --tag beta
+        run: pnpm nx release publish --tag ${{ steps.release_tag.outputs.npm_tag }}
         env:
           NODE_AUTH_TOKEN: ${{ env.NPM_ACCESS_TOKEN }}
           NPM_CONFIG_PROVENANCE: true
@@ -67,7 +96,7 @@ jobs:
           scope: "@mgwilt"
 
       - name: Publish prerelease to GitHub Packages
-        run: pnpm nx release publish --registry=https://npm.pkg.github.com --tag beta
+        run: pnpm nx release publish --registry=https://npm.pkg.github.com --tag ${{ steps.release_tag.outputs.npm_tag }}
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
