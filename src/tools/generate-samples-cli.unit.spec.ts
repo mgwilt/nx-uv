@@ -7,7 +7,7 @@ import {
   writeFileSync,
 } from "node:fs";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { dirname, join } from "node:path";
 
 import { afterEach, describe, expect, it, vi } from "vitest";
 
@@ -61,10 +61,15 @@ const generateSamples = require("../../tools/generate-samples.cjs") as {
     sampleDefinitions?: Array<
       { slug: string; summary: string } & Record<string, unknown>
     >;
+    fileSystem?: unknown;
+    pathModule?: unknown;
     writeStdout?: (value: string) => void;
     generateSampleImpl?: (
       outputDir: string,
       sample: Record<string, unknown>,
+      generatorDependencies?: unknown,
+      fileSystem?: unknown,
+      pathModule?: unknown,
     ) => Promise<void>;
     renderSamplesIndexImpl?: (items: unknown[]) => string;
   }) => Promise<void>;
@@ -332,18 +337,39 @@ describe("generate-samples cli script helpers", () => {
 
   it("runs main with injected operations and writes summary output", async () => {
     const root = createTempRoot();
-    const calls: string[] = [];
+    const calls: Array<{
+      outputDir: string;
+      fileSystem: unknown;
+      pathModule: unknown;
+    }> = [];
     const logs: string[] = [];
     const samples = [
       createSample({ slug: "one" }),
       createSample({ slug: "two" }),
     ];
+    const fileSystemProxy = {
+      mkdirSync,
+      rmSync,
+      writeFileSync,
+    };
+    const pathModuleProxy = {
+      join,
+      dirname,
+    };
 
     await generateSamples.main({
       samplesRoot: root,
       sampleDefinitions: samples,
-      generateSampleImpl: async (outputDir: string) => {
-        calls.push(outputDir);
+      fileSystem: fileSystemProxy,
+      pathModule: pathModuleProxy,
+      generateSampleImpl: async (
+        outputDir: string,
+        _sample: Record<string, unknown>,
+        _generatorDependencies: unknown,
+        fileSystem: unknown,
+        pathModule: unknown,
+      ) => {
+        calls.push({ outputDir, fileSystem, pathModule });
       },
       renderSamplesIndexImpl: (items: unknown[]) => `index=${items.length}`,
       writeStdout: (value: string) => {
@@ -351,9 +377,20 @@ describe("generate-samples cli script helpers", () => {
       },
     });
 
-    expect(calls).toEqual([join(root, "one"), join(root, "two")]);
+    expect(calls).toEqual([
+      {
+        outputDir: join(root, "one"),
+        fileSystem: fileSystemProxy,
+        pathModule: pathModuleProxy,
+      },
+      {
+        outputDir: join(root, "two"),
+        fileSystem: fileSystemProxy,
+        pathModule: pathModuleProxy,
+      },
+    ]);
     expect(readFileSync(join(root, "README.md"), "utf-8")).toBe("index=2");
-    expect(logs).toEqual(["Generated 2 samples in samples/.\n"]);
+    expect(logs).toEqual([`Generated 2 samples in ${root}.\n`]);
   });
 
   it("handles success and failure for runGenerateSamplesCli", async () => {

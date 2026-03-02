@@ -162,7 +162,13 @@ async function main(options = {}) {
   for (const sample of sampleDefinitions) {
     const outputDir = pathModule.join(samplesRoot, sample.slug);
     ensureDir(outputDir, fileSystem);
-    await generateSampleImpl(outputDir, sample);
+    await generateSampleImpl(
+      outputDir,
+      sample,
+      undefined,
+      fileSystem,
+      pathModule,
+    );
   }
 
   writeFile(
@@ -171,7 +177,9 @@ async function main(options = {}) {
     fileSystem,
     pathModule,
   );
-  writeStdout(`Generated ${sampleDefinitions.length} samples in samples/.\n`);
+  writeStdout(
+    `Generated ${sampleDefinitions.length} samples in ${samplesRoot}.\n`,
+  );
 }
 
 function removeManagedSamples(
