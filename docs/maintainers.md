@@ -109,19 +109,18 @@ Additional references:
 4. README coverage badge reads from:
    - `https://raw.githubusercontent.com/mgwilt/nx-uv/badges/.github/badges/coverage.json`
 
-## Release process (pre-v1)
+## Release process
 
-The project currently ships prereleases to [npm](https://www.npmjs.com/).
+The project ships stable releases to [npm](https://www.npmjs.com/).
 
-- Version bump (preid):
+- Version bump:
   - `pnpm release:version`
-- Publish with prerelease dist-tag:
+- Publish with stable dist-tag:
   - `pnpm release:publish`
 
 Current release policy:
 
-- [npm](https://www.npmjs.com/) dist-tag: `beta`
-- Stable `latest` should not be the default path until v1 planning changes.
+- [npm](https://www.npmjs.com/) dist-tag: `latest`
 
 ## llms automation
 

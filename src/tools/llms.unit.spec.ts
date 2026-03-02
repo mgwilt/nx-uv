@@ -49,7 +49,7 @@ function createManifest(overrides?: Partial<LlmsManifest>): LlmsManifest {
     title: "@mgwilt/nx-uv",
     summary: "Nx plugin for uv workflows in Nx monorepos.",
     baseUrl: "https://github.com/mgwilt/nx-uv/blob/main",
-    notes: ["Published as a pre-v1 beta package."],
+    notes: [],
     sections: [
       {
         name: "Docs",

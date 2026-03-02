@@ -10,7 +10,7 @@ on:
         options:
           - beta
           - stable
-        default: beta
+        default: stable
       version:
         description: Optional exact version (for example 0.2.0)
         required: false

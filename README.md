@@ -5,7 +5,6 @@
 [![CI](https://github.com/mgwilt/nx-uv/actions/workflows/ci.yml/badge.svg)](https://github.com/mgwilt/nx-uv/actions/workflows/ci.yml)
 [![Coverage](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/mgwilt/nx-uv/badges/.github/badges/coverage.json)](https://github.com/mgwilt/nx-uv/blob/badges/.github/badges/coverage.json)
 [![npm release](https://img.shields.io/npm/v/%40mgwilt%2Fnx-uv/latest?label=npm%20release&cacheSeconds=300)](https://www.npmjs.com/package/@mgwilt/nx-uv?activeTab=versions)
-[![npm beta](https://img.shields.io/npm/v/%40mgwilt%2Fnx-uv/beta?label=npm%20beta&cacheSeconds=300)](https://www.npmjs.com/package/@mgwilt/nx-uv?activeTab=versions)
 
 ## Why this plugin exists
 
@@ -95,10 +94,10 @@ pnpm create nx-workspace@latest acme-monorepo --preset=ts --packageManager=pnpm 
 cd acme-monorepo
 ```
 
-2. Install this plugin (beta channel) and initialize workspace-level [uv](https://docs.astral.sh/uv/) config:
+2. Install this plugin and initialize workspace-level [uv](https://docs.astral.sh/uv/) config:
 
 ```bash
-pnpm add -D @mgwilt/nx-uv@beta
+pnpm add -D @mgwilt/nx-uv
 pnpm nx g @mgwilt/nx-uv:workspace --name=acme --membersGlob='packages/py/*'
 ```
 
@@ -298,7 +297,6 @@ pnpm nx g @mgwilt/nx-uv:integration --template=pytorch --project=api
 
 - Runtime [uv](https://docs.astral.sh/uv/) compatibility checks verify that `uv` is available and executable.
 - `uv 0.9.x` and `0.10.x` are currently the tested ranges. Other versions log a warning and continue.
-- This package is pre-v1 and published on the [npm](https://www.npmjs.com/) `beta` dist-tag.
 
 ## Troubleshooting
 
