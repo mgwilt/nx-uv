@@ -38,14 +38,27 @@ describe("uv executor", () => {
     spawnSyncMock.mockReset();
   });
 
-  it("fails version check for unsupported uv versions", async () => {
-    spawnSyncMock.mockReturnValue({
-      status: 0,
-      stdout: "uv 1.0.0\n",
-      stderr: "",
-      pid: 1,
-      output: [],
-      signal: null,
+  it("continues when uv version is outside tested range", async () => {
+    spawnSyncMock.mockImplementation((_command: string, args: string[]) => {
+      if (args[0] === "--version") {
+        return {
+          status: 0,
+          stdout: "uv 1.0.0\n",
+          stderr: "",
+          pid: 1,
+          output: [],
+          signal: null,
+        };
+      }
+
+      return {
+        status: 0,
+        stdout: "",
+        stderr: "",
+        pid: 1,
+        output: [],
+        signal: null,
+      };
     });
 
     const options: UvExecutorSchema = {
@@ -54,8 +67,8 @@ describe("uv executor", () => {
 
     const result = await executor(options, context);
 
-    expect(result.success).toBe(false);
-    expect(spawnSyncMock).toHaveBeenCalledTimes(1);
+    expect(result.success).toBe(true);
+    expect(spawnSyncMock).toHaveBeenCalledTimes(2);
   });
 
   it("runs universal uv args", async () => {
