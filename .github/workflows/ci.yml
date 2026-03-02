@@ -27,6 +27,11 @@ jobs:
           node-version: 20
           cache: pnpm
 
+      - name: Setup uv
+        uses: astral-sh/setup-uv@v4
+        with:
+          enable-cache: true
+
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
@@ -63,6 +68,11 @@ jobs:
         with:
           node-version: 20
           cache: pnpm
+
+      - name: Setup uv
+        uses: astral-sh/setup-uv@v4
+        with:
+          enable-cache: true
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
