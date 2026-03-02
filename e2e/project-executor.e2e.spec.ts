@@ -106,6 +106,11 @@ function probeExecutableShimSupport(): ShimProbeResult {
 
 const shimProbe = probeExecutableShimSupport();
 const e2eTest = shimProbe.ok ? it : it.skip;
+const isCi = String(process.env.CI ?? "").toLowerCase() === "true";
+const allowAllSkipped =
+  String(process.env.NX_UV_ALLOW_E2E_ALL_SKIPPED ?? "").toLowerCase() === "1" ||
+  String(process.env.NX_UV_ALLOW_E2E_ALL_SKIPPED ?? "").toLowerCase() ===
+    "true";
 
 describe("project executor e2e", () => {
   const originalPath = process.env.PATH ?? "";
@@ -116,6 +121,24 @@ describe("project executor e2e", () => {
         `Skipping project executor e2e: executable shim probe failed (${shimProbe.reason}).`,
       );
     }
+  });
+
+  it("requires executable shim support in CI unless override is enabled", () => {
+    if (shimProbe.ok) {
+      return;
+    }
+
+    const message = [
+      `Executable shim probe failed (${shimProbe.reason}).`,
+      "E2E assertions were skipped.",
+      "Set NX_UV_ALLOW_E2E_ALL_SKIPPED=1 to allow this outcome in known restricted CI environments.",
+    ].join(" ");
+
+    if (isCi && !allowAllSkipped) {
+      throw new Error(message);
+    }
+
+    console.warn(message);
   });
 
   beforeEach(() => {

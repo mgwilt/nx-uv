@@ -20,7 +20,7 @@ describe("integration generator", () => {
     const workflow = tree.read(".github/workflows/uv-ci.yml", "utf-8") ?? "";
 
     expect(workflow).toContain("pnpm nx affected");
-    expect(workflow).toContain("-t test,lint,build");
+    expect(workflow).toContain("-t test,lint,typecheck,build");
     expect(workflow).toContain("nrwl/nx-set-shas@v4");
     expect(workflow).toContain("astral-sh/setup-uv@v4");
     expect(workflow).toContain("enable-cache: false");
@@ -36,7 +36,9 @@ describe("integration generator", () => {
 
     const pipeline = tree.read(".gitlab-ci.uv.yml", "utf-8") ?? "";
 
-    expect(pipeline).toContain("pnpm nx run-many -t test,lint,build --all");
+    expect(pipeline).toContain(
+      "pnpm nx run-many -t test,lint,typecheck,build --all",
+    );
     expect(pipeline).toContain(
       "curl -LsSf https://astral.sh/uv/install.sh | sh",
     );

@@ -118,7 +118,7 @@ At this point you have a working monorepo with:
 
 - Root `pyproject.toml` and [uv](https://docs.astral.sh/uv/) workspace members
 - A generated `api` [Python](https://www.python.org/) project under `packages/py/api`
-- Generated [FastAPI](https://fastapi.tiangolo.com/) starter files and a [GitHub Actions](https://github.com/features/actions) Nx-first CI template
+- Generated [FastAPI](https://fastapi.tiangolo.com/) starter files and a [GitHub Actions](https://github.com/features/actions) Nx-first CI template (`test`, `lint`, `typecheck`, `build`)
 - [Nx](https://nx.dev/) targets that run uv commands consistently in CI/local dev
 
 ## Quick start (existing workspace)
@@ -267,26 +267,25 @@ pnpm nx g @mgwilt/nx-uv:integration --template=pytorch --project=api
 If `quality:ci` fails before running tasks with worker/bootstrap errors (for example `Failed to load ... Nx plugin(s)`), run:
 
 ```bash
-pnpm nx report
+pnpm quality:bootstrap
 pnpm nx reset
-NX_DAEMON=false pnpm quality:ci
+pnpm quality:ci
 ```
 
 If bootstrap still fails, run direct checks to isolate whether the issue is Nx plugin startup or project logic:
 
 ```bash
-pnpm exec eslint .
-pnpm exec tsc -p tsconfig.lib.json --noEmit
-pnpm exec tsc -p tsconfig.spec.json --noEmit
-pnpm exec vitest run -c vitest.unit.config.mts
-pnpm exec vitest run -c vitest.integration.config.mts
-pnpm exec vitest run -c vitest.e2e.config.mts
-pnpm exec vitest run -c vitest.coverage.config.mts
+pnpm quality:fallback
+pnpm --version
+pnpm nx --version
+node -v
 ```
 
 ### E2E execution permissions
 
 The e2e suite executes a temporary shim binary from the local filesystem. In restricted environments (for example `noexec` mounts or sandboxed process policies), e2e tests may be skipped when executable spawning is not permitted.
+
+In CI, an all-skipped e2e run is treated as a failure by default. Set `NX_UV_ALLOW_E2E_ALL_SKIPPED=1` only in known restricted CI environments where executable shim spawning is intentionally blocked.
 
 ## LLM context files
 
@@ -306,4 +305,6 @@ pnpm llms:check
 
 - [Documentation index](docs/index.md)
 - [Maintainer guide (quality gates, CI, release)](docs/maintainers.md)
+- [Maintainer toolchain matrix](docs/toolchain-matrix.md)
+- [Runbook: gate failed before tasks started](docs/runbooks/gate-bootstrap-failure.md)
 - [Sample scaffolding patterns](samples/README.md)

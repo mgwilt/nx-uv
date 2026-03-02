@@ -24,31 +24,39 @@ This document covers repository operations and internal workflows. End-user usag
 
 ## Quality gates
 
+- Nx bootstrap health check:
+  - `pnpm quality:bootstrap`
 - Local fast gate:
   - `pnpm quality:local`
 - Full strict gate:
   - `pnpm quality:ci`
+- Fallback direct gate (when Nx bootstrap fails):
+  - `pnpm quality:fallback`
 
 Troubleshooting when Nx plugin bootstrap fails before tasks execute:
 
-- `pnpm nx report`
+- `pnpm quality:bootstrap`
 - `pnpm nx reset`
-- `NX_DAEMON=false pnpm quality:ci`
+- `pnpm quality:ci`
 
 Fallback direct checks (to isolate Nx bootstrap issues from plugin logic):
 
-- `pnpm exec eslint .`
-- `pnpm exec tsc -p tsconfig.lib.json --noEmit`
-- `pnpm exec tsc -p tsconfig.spec.json --noEmit`
-- `pnpm exec vitest run -c vitest.unit.config.mts`
-- `pnpm exec vitest run -c vitest.integration.config.mts`
-- `pnpm exec vitest run -c vitest.e2e.config.mts`
-- `pnpm exec vitest run -c vitest.coverage.config.mts`
+- `pnpm quality:fallback`
+- This command intentionally bypasses Nx graph construction and runs eslint/tsc/vitest directly.
+
+Capture diagnostics for issue reports:
+
+- `pnpm --version`
+- `pnpm nx --version`
+- `node -v`
+- `pnpm quality:bootstrap`
 
 E2E note:
 
 - `e2e/project-executor.e2e.spec.ts` now probes whether local executable shims can run.
 - In restricted environments (`EPERM`/`EACCES` spawn failures), the e2e cases are skipped with a warning instead of producing misleading assertion failures.
+- In CI, if executable shim probing fails and all e2e assertions would be skipped, the suite fails by default.
+- Set `NX_UV_ALLOW_E2E_ALL_SKIPPED=1` only for known restricted CI environments where executable process shims are not permitted.
 
 Coverage thresholds enforced in `vitest.coverage.config.mts`:
 
@@ -75,10 +83,10 @@ Coverage thresholds enforced in `vitest.coverage.config.mts`:
 ## CI workflows
 
 - `ci.yml`
-  - Pull requests: affected checks
-  - Push to `main`: full quality gate + coverage badge publish
+  - Pull requests: affected checks on Node `20`, `22`, and `24`
+  - Push to `main`: full quality gate on Node `20`, `22`, and `24` + coverage badge publish from Node `22`
 - `nightly.yml`
-  - Scheduled full quality validation
+  - Scheduled full quality validation on Node `20`, `22`, and `24`
 - `samples.yml`
   - Regenerates `samples/` and fails on drift for generator-related PRs/pushes
 - `llms.yml`
@@ -87,6 +95,11 @@ Coverage thresholds enforced in `vitest.coverage.config.mts`:
   - Manual prerelease flow (`beta` channel)
 - `commitlint.yml`
   - [Conventional Commits](https://www.conventionalcommits.org/) message validation for PRs
+
+Additional references:
+
+- Toolchain policy: [`toolchain-matrix.md`](toolchain-matrix.md)
+- Bootstrap incident runbook: [`runbooks/gate-bootstrap-failure.md`](runbooks/gate-bootstrap-failure.md)
 
 ## Coverage badge pipeline
 

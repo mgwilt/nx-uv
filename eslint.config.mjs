@@ -12,7 +12,12 @@ export default [
   ...nx.configs["flat/typescript"],
   ...nx.configs["flat/javascript"],
   {
-    ignores: ["**/dist", "**/out-tsc", "**/vitest.config.*.timestamp*"],
+    ignores: [
+      "**/coverage",
+      "**/dist",
+      "**/out-tsc",
+      "**/vitest.config.*.timestamp*",
+    ],
   },
   {
     files: ["**/package.json", "**/executors.json", "**/generators.json"],
