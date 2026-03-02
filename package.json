@@ -40,11 +40,14 @@
     "python"
   ],
   "dependencies": {
+    "@iarna/toml": "^2.2.5",
     "@nx/devkit": "22.5.3",
     "@nx/vite": "22.5.3",
-    "nx": "22.5.3",
     "tslib": "^2.3.0",
     "vitest": "^4.0.18"
+  },
+  "peerDependencies": {
+    "nx": ">=22 <=23"
   },
   "devDependencies": {
     "@commitlint/cli": "^20.4.2",
@@ -54,6 +57,7 @@
     "@nx/eslint-plugin": "22.5.3",
     "@nx/js": "22.5.3",
     "@nx/vitest": "22.5.3",
+    "nx": "22.5.3",
     "@swc-node/register": "^1.11.1",
     "@swc/core": "^1.15.18",
     "@types/node": "^20.19.9",
@@ -61,8 +65,8 @@
     "eslint": "^9.39.0",
     "eslint-config-prettier": "^10.1.8",
     "jsdom": "^27.1.0",
-    "lefthook": "^2.1.2",
     "jsonc-eslint-parser": "^2.4.0",
+    "lefthook": "^2.1.2",
     "prettier": "^3.6.2",
     "typescript": "~5.9.2",
     "typescript-eslint": "^8.56.0",

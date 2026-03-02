@@ -1,15 +1,37 @@
 import { readFileSync } from "node:fs";
 import { dirname, join, posix } from "node:path";
-import { createNodesFromFiles } from "nx/src/project-graph/plugins";
 import {
+  createNodesFromFiles,
   CreateNodesResult,
   CreateNodesV2,
-} from "nx/src/project-graph/plugins/public-api";
+} from "@nx/devkit";
+import { parse as parseToml } from "@iarna/toml";
+
+export type InferredTargetName =
+  | "sync"
+  | "run"
+  | "lock"
+  | "test"
+  | "lint"
+  | "build"
+  | "tree"
+  | "export"
+  | "format"
+  | "venv"
+  | "publish";
+
+type InferredTargetOptions = {
+  command?: string;
+  commandArgs?: string[];
+};
 
 export type NxUvPluginOptions = {
   targetPrefix?: string;
   inferencePreset?: "minimal" | "standard" | "full";
   includeGlobalTargets?: boolean;
+  inferredTargets?: Partial<
+    Record<InferredTargetName, false | InferredTargetOptions>
+  >;
 };
 
 export const createNodesV2: CreateNodesV2<NxUvPluginOptions> = [
@@ -31,8 +53,9 @@ function createProjectNode(
 ): CreateNodesResult {
   const projectRoot = normalizeRoot(dirname(configFile));
   const pyproject = readFileSync(join(workspaceRoot, configFile), "utf-8");
+  const parsedPyproject = parseTomlDocument(pyproject);
   const projectName =
-    parseProjectName(pyproject) ??
+    parseProjectName(parsedPyproject) ??
     (projectRoot === "."
       ? "python-workspace"
       : sanitizeName(posix.basename(projectRoot)));
@@ -42,7 +65,7 @@ function createProjectNode(
       [projectRoot]: {
         name: sanitizeName(projectName),
         root: projectRoot,
-        targets: buildTargets(projectRoot, pyproject, options),
+        targets: buildTargets(projectRoot, pyproject, parsedPyproject, options),
         metadata: {
           technology: "python",
           tool: "uv",
@@ -55,41 +78,72 @@ function createProjectNode(
 function buildTargets(
   projectRoot: string,
   pyproject: string,
+  parsedPyproject: unknown | undefined,
   options: NxUvPluginOptions,
 ) {
   const targetPrefix = options.targetPrefix ?? "uv:";
   const preset = options.inferencePreset ?? "standard";
+  const inferredTargets = options.inferredTargets ?? {};
 
   const baseTargets: Record<
     string,
     { executor: string; options: Record<string, unknown> }
+  > = {};
+
+  const defaults: Record<
+    InferredTargetName,
+    { command: string; commandArgs?: string[] }
   > = {
-    [`${targetPrefix}sync`]: target(projectRoot, "sync"),
-    [`${targetPrefix}run`]: target(projectRoot, "run", ["--", "python", "-V"]),
+    sync: { command: "sync" },
+    run: { command: "run", commandArgs: ["--", "python", "-V"] },
+    lock: { command: "lock" },
+    test: { command: "run", commandArgs: ["--", "pytest", "-q"] },
+    lint: { command: "run", commandArgs: ["--", "ruff", "check", "."] },
+    build: { command: "build" },
+    tree: { command: "tree" },
+    export: { command: "export" },
+    format: { command: "format" },
+    venv: { command: "venv" },
+    publish: { command: "publish" },
   };
 
-  if (preset === "standard" || preset === "full") {
-    baseTargets[`${targetPrefix}lock`] = target(projectRoot, "lock");
-    baseTargets[`${targetPrefix}test`] = target(projectRoot, "run", [
-      "--",
-      "pytest",
-      "-q",
-    ]);
-    baseTargets[`${targetPrefix}lint`] = target(projectRoot, "run", [
-      "--",
-      "ruff",
-      "check",
-      ".",
-    ]);
-    baseTargets[`${targetPrefix}build`] = target(projectRoot, "build");
-    baseTargets[`${targetPrefix}tree`] = target(projectRoot, "tree");
-  }
+  const targetOrderByPreset: Record<
+    "minimal" | "standard" | "full",
+    InferredTargetName[]
+  > = {
+    minimal: ["sync", "run"],
+    standard: ["sync", "run", "lock", "test", "lint", "build", "tree"],
+    full: [
+      "sync",
+      "run",
+      "lock",
+      "test",
+      "lint",
+      "build",
+      "tree",
+      "export",
+      "format",
+      "venv",
+      "publish",
+    ],
+  };
 
-  if (preset === "full") {
-    baseTargets[`${targetPrefix}export`] = target(projectRoot, "export");
-    baseTargets[`${targetPrefix}format`] = target(projectRoot, "format");
-    baseTargets[`${targetPrefix}venv`] = target(projectRoot, "venv");
-    baseTargets[`${targetPrefix}publish`] = target(projectRoot, "publish");
+  for (const targetName of targetOrderByPreset[preset]) {
+    const resolved = resolveInferredTarget(
+      targetName,
+      defaults[targetName],
+      inferredTargets[targetName],
+    );
+
+    if (!resolved) {
+      continue;
+    }
+
+    baseTargets[`${targetPrefix}${targetName}`] = target(
+      projectRoot,
+      resolved.command,
+      resolved.commandArgs,
+    );
   }
 
   const includeGlobalTargets = options.includeGlobalTargets ?? false;
@@ -97,7 +151,7 @@ function buildTargets(
   if (
     includeGlobalTargets &&
     projectRoot === "." &&
-    pyproject.includes("[tool.uv.workspace]")
+    hasUvWorkspaceTable(parsedPyproject, pyproject)
   ) {
     baseTargets[`${targetPrefix}python:list`] = {
       executor: "@mgwilt/nx-uv:python",
@@ -132,6 +186,35 @@ function buildTargets(
   return baseTargets;
 }
 
+function resolveInferredTarget(
+  _targetName: InferredTargetName,
+  defaults: { command: string; commandArgs?: string[] },
+  configured: false | InferredTargetOptions | undefined,
+): { command: string; commandArgs?: string[] } | null {
+  if (configured === false) {
+    return null;
+  }
+
+  if (!configured) {
+    return defaults;
+  }
+
+  const hasArgsOverride = Object.prototype.hasOwnProperty.call(
+    configured,
+    "commandArgs",
+  );
+
+  const command = configured.command ?? defaults.command;
+  const commandArgs = hasArgsOverride
+    ? configured.commandArgs
+    : defaults.commandArgs;
+
+  return {
+    command,
+    ...(commandArgs?.length ? { commandArgs } : {}),
+  };
+}
+
 function target(projectRoot: string, command: string, commandArgs?: string[]) {
   return {
     executor: "@mgwilt/nx-uv:project",
@@ -143,14 +226,50 @@ function target(projectRoot: string, command: string, commandArgs?: string[]) {
   };
 }
 
-function parseProjectName(content: string): string | undefined {
-  const sectionMatch = /\[project\][\s\S]*?(\n\[[^\]]+\]|$)/m.exec(content);
-  if (!sectionMatch) {
+function parseTomlDocument(content: string): unknown | undefined {
+  try {
+    return parseToml(content);
+  } catch {
+    return undefined;
+  }
+}
+
+function parseProjectName(parsedToml: unknown | undefined): string | undefined {
+  if (!isRecord(parsedToml)) {
     return undefined;
   }
 
-  const nameMatch = /^\s*name\s*=\s*['"]([^'"]+)['"]/m.exec(sectionMatch[0]);
-  return nameMatch?.[1];
+  const project = parsedToml["project"];
+  if (!isRecord(project)) {
+    return undefined;
+  }
+
+  const name = project["name"];
+  return typeof name === "string" ? name : undefined;
+}
+
+function hasUvWorkspaceTable(
+  parsedToml: unknown | undefined,
+  rawToml: string,
+): boolean {
+  if (isRecord(parsedToml)) {
+    const tool = parsedToml["tool"];
+    if (isRecord(tool)) {
+      const uv = tool["uv"];
+      if (isRecord(uv)) {
+        const workspace = uv["workspace"];
+        if (isRecord(workspace)) {
+          return true;
+        }
+      }
+    }
+  }
+
+  return rawToml.includes("[tool.uv.workspace]");
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null;
 }
 
 function sanitizeName(name: string): string {
