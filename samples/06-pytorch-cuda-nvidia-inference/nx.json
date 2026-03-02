@@ -1,0 +1,23 @@
+{
+  "affected": {
+    "defaultBase": "main"
+  },
+  "targetDefaults": {
+    "build": {
+      "cache": true
+    },
+    "lint": {
+      "cache": true
+    }
+  },
+  "plugins": [
+    {
+      "plugin": "@mgwilt/nx-uv",
+      "options": {
+        "targetPrefix": "uv:",
+        "inferencePreset": "standard",
+        "includeGlobalTargets": false
+      }
+    }
+  ]
+}

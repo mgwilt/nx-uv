@@ -1,7 +1,18 @@
+# PyTorch CPU snippet for pyproject.toml.
+# Pinned package set:
+#   torch==2.5.1
+#   torchvision==0.20.1
+#   torchaudio==2.5.1
+# Suggested install command:
+#   uv add "torch==2.5.1" "torchvision==0.20.1" "torchaudio==2.5.1"
+# Backend channel: cpu
+
 [[tool.uv.index]]
-name = "pytorch"
+name = "pytorch-cpu"
 url = "https://download.pytorch.org/whl/cpu"
 explicit = true
 
 [tool.uv.sources]
-torch = { index = "pytorch" }
+torch = { index = "pytorch-cpu" }
+torchvision = { index = "pytorch-cpu" }
+torchaudio = { index = "pytorch-cpu" }

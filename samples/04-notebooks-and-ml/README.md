@@ -13,9 +13,9 @@ pnpm nx g @mgwilt/nx-uv:project lab --projectType=lib --directory=packages/py
 pnpm nx g @mgwilt/nx-uv:integration --template=jupyter --project=lab
 pnpm nx g @mgwilt/nx-uv:integration --template=marimo --project=lab
 pnpm nx g @mgwilt/nx-uv:integration --template=coiled --project=lab
-pnpm nx g @mgwilt/nx-uv:integration --template=pytorch --project=lab
+pnpm nx g @mgwilt/nx-uv:integration --template=pytorch --project=lab --backend=cpu --includeNotebook=false --includeDocker=false
 cd packages/py/lab
-uv add pandas pyarrow torch
+uv add pandas pyarrow "torch==2.5.1" "torchvision==0.20.1" "torchaudio==2.5.1"
 uv add --dev pytest ruff ipykernel marimo
 cd ../../..
 ```

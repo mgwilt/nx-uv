@@ -29,6 +29,21 @@
       "type": "string",
       "description": "Optional directory to write integration files into when no project is provided."
     },
+    "backend": {
+      "type": "string",
+      "description": "PyTorch backend selector for template=pytorch.",
+      "enum": ["cuda", "rocm", "cpu"],
+      "default": "cuda"
+    },
+    "includeNotebook": {
+      "type": "boolean",
+      "description": "When template=pytorch, include notebook scaffolding files.",
+      "default": true
+    },
+    "includeDocker": {
+      "type": "boolean",
+      "description": "When template=pytorch, include NVIDIA inference Docker/Compose assets (cuda only). Defaults to true for backend=cuda, false otherwise."
+    },
     "overwrite": {
       "type": "boolean",
       "default": false

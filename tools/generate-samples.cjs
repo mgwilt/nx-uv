@@ -4,34 +4,21 @@
 const fs = require("node:fs");
 const path = require("node:path");
 
-/* v8 ignore next -- runtime dependency wiring for direct CLI execution */
-function resolveGeneratorDependencies() {
-  require("@swc-node/register");
-  const { createTreeWithEmptyWorkspace } = require("@nx/devkit/testing");
-  const {
-    workspaceGenerator,
-  } = require("../src/generators/workspace/workspace.ts");
-  const { projectGenerator } = require("../src/generators/project/project.ts");
-  const {
-    integrationGenerator,
-  } = require("../src/generators/integration/integration.ts");
+require("@swc-node/register");
 
-  return {
-    createTreeWithEmptyWorkspace,
-    workspaceGenerator,
-    projectGenerator,
-    integrationGenerator,
-  };
-}
+const {
+  WORKSPACE_LEVEL_INTEGRATION_TEMPLATES,
+} = require("../src/generators/integration/templates.ts");
 
 const REPO_ROOT = path.resolve(__dirname, "..");
 const SAMPLES_ROOT = path.join(REPO_ROOT, "samples");
-const WORKSPACE_LEVEL_TEMPLATES = new Set([
-  "github",
-  "gitlab",
-  "dependency-bots",
-  "pre-commit",
-]);
+const WORKSPACE_LEVEL_TEMPLATES = new Set(
+  WORKSPACE_LEVEL_INTEGRATION_TEMPLATES,
+);
+
+function integrationStep(template, options = {}) {
+  return { template, options };
+}
 
 const SAMPLE_DEFINITIONS = [
   {
@@ -46,7 +33,7 @@ const SAMPLE_DEFINITIONS = [
       projectType: "app",
       directory: "packages/py",
     },
-    integrations: ["fastapi", "github"],
+    integrationSteps: [integrationStep("fastapi"), integrationStep("github")],
     dependencyCommands: ["uv add fastapi uvicorn", "uv add --dev pytest ruff"],
     runTargets: [
       "pnpm nx run api:sync",
@@ -69,7 +56,11 @@ const SAMPLE_DEFINITIONS = [
       projectType: "app",
       directory: "packages/py",
     },
-    integrations: ["fastapi", "docker", "pre-commit"],
+    integrationSteps: [
+      integrationStep("fastapi"),
+      integrationStep("docker"),
+      integrationStep("pre-commit"),
+    ],
     dependencyCommands: ["uv add fastapi uvicorn", "uv add --dev pytest ruff"],
     runTargets: [
       "pnpm nx run service:sync",
@@ -90,7 +81,10 @@ const SAMPLE_DEFINITIONS = [
       projectType: "app",
       directory: "packages/py",
     },
-    integrations: ["aws-lambda", "alternative-indexes"],
+    integrationSteps: [
+      integrationStep("aws-lambda"),
+      integrationStep("alternative-indexes"),
+    ],
     dependencyCommands: ["uv add boto3", "uv add --dev pytest ruff"],
     runTargets: [
       "pnpm nx run lambda-api:sync",
@@ -111,9 +105,18 @@ const SAMPLE_DEFINITIONS = [
       projectType: "lib",
       directory: "packages/py",
     },
-    integrations: ["jupyter", "marimo", "coiled", "pytorch"],
+    integrationSteps: [
+      integrationStep("jupyter"),
+      integrationStep("marimo"),
+      integrationStep("coiled"),
+      integrationStep("pytorch", {
+        backend: "cpu",
+        includeNotebook: false,
+        includeDocker: false,
+      }),
+    ],
     dependencyCommands: [
-      "uv add pandas pyarrow torch",
+      'uv add pandas pyarrow "torch==2.5.1" "torchvision==0.20.1" "torchaudio==2.5.1"',
       "uv add --dev pytest ruff ipykernel marimo",
     ],
     runTargets: [
@@ -135,7 +138,12 @@ const SAMPLE_DEFINITIONS = [
       projectType: "lib",
       directory: "packages/py",
     },
-    integrations: ["dependency-bots", "github", "gitlab", "pre-commit"],
+    integrationSteps: [
+      integrationStep("dependency-bots"),
+      integrationStep("github"),
+      integrationStep("gitlab"),
+      integrationStep("pre-commit"),
+    ],
     dependencyCommands: ["uv add httpx", "uv add --dev pytest ruff"],
     runTargets: [
       "pnpm nx run shared:sync",
@@ -143,7 +151,88 @@ const SAMPLE_DEFINITIONS = [
       "pnpm nx run shared:build",
     ],
   },
+  {
+    slug: "06-pytorch-cuda-nvidia-inference",
+    title:
+      "06 [PyTorch](https://pytorch.org/) CUDA + NVIDIA Inference [Docker](https://www.docker.com/)",
+    summary:
+      "GPU-first [PyTorch](https://pytorch.org/) setup with CUDA wheel source, notebooks, and NVIDIA inference container scaffolding.",
+    workspaceDir: "acme-cuda",
+    workspaceName: "acme-cuda",
+    project: {
+      name: "inference",
+      projectType: "app",
+      directory: "packages/py",
+    },
+    integrationSteps: [
+      integrationStep("jupyter"),
+      integrationStep("pytorch", {
+        backend: "cuda",
+        includeNotebook: true,
+        includeDocker: true,
+      }),
+    ],
+    dependencyCommands: [
+      'uv add "torch==2.5.1" "torchvision==0.20.1" "torchaudio==2.5.1"',
+      "uv add --dev pytest ruff ipykernel",
+    ],
+    runTargets: [
+      "pnpm nx run inference:sync",
+      "pnpm nx run inference:test",
+      "pnpm nx run inference:build",
+    ],
+  },
+  {
+    slug: "07-pytorch-rocm-notebooks",
+    title: "07 [PyTorch](https://pytorch.org/) ROCm + Notebook Workflows",
+    summary:
+      "ROCm-oriented [PyTorch](https://pytorch.org/) setup with pinned wheel source and generated notebook examples.",
+    workspaceDir: "acme-rocm",
+    workspaceName: "acme-rocm",
+    project: {
+      name: "rocm-lab",
+      projectType: "lib",
+      directory: "packages/py",
+    },
+    integrationSteps: [
+      integrationStep("jupyter"),
+      integrationStep("pytorch", {
+        backend: "rocm",
+        includeNotebook: true,
+        includeDocker: false,
+      }),
+    ],
+    dependencyCommands: [
+      'uv add "torch==2.5.1" "torchvision==0.20.1" "torchaudio==2.5.1"',
+      "uv add --dev pytest ruff ipykernel",
+    ],
+    runTargets: [
+      "pnpm nx run rocm-lab:sync",
+      "pnpm nx run rocm-lab:test",
+      "pnpm nx run rocm-lab:build",
+    ],
+  },
 ];
+
+/* v8 ignore next -- runtime dependency wiring for direct CLI execution */
+function resolveGeneratorDependencies() {
+  const { createTreeWithEmptyWorkspace } = require("@nx/devkit/testing");
+  const {
+    workspaceGenerator,
+  } = require("../src/generators/workspace/workspace.ts");
+  const { projectGenerator } = require("../src/generators/project/project.ts");
+  const {
+    integrationGenerator,
+  } = require("../src/generators/integration/integration.ts");
+
+  return {
+    createTreeWithEmptyWorkspace,
+    workspaceGenerator,
+    projectGenerator,
+    integrationGenerator,
+    workspaceLevelTemplates: WORKSPACE_LEVEL_TEMPLATES,
+  };
+}
 
 async function main(options = {}) {
   const {
@@ -206,6 +295,7 @@ async function generateSample(
     workspaceGenerator,
     projectGenerator,
     integrationGenerator,
+    workspaceLevelTemplates = WORKSPACE_LEVEL_TEMPLATES,
   } = generatorDependencies;
   const tree = createTreeWithEmptyWorkspace();
 
@@ -220,23 +310,54 @@ async function generateSample(
     projectType: sample.project.projectType,
   });
 
-  for (const template of sample.integrations) {
-    await integrationGenerator(tree, {
-      template,
-      ...(WORKSPACE_LEVEL_TEMPLATES.has(template)
-        ? {}
-        : { project: sample.project.name }),
-    });
+  for (const step of getIntegrationSteps(sample)) {
+    await integrationGenerator(
+      tree,
+      buildIntegrationGeneratorOptions(
+        step,
+        sample.project.name,
+        workspaceLevelTemplates,
+      ),
+    );
   }
 
   customizePackageJson(tree, sample);
   applyTreeToFs(tree, outputDir, fileSystem, pathModule);
   writeFile(
     pathModule.join(outputDir, "README.md"),
-    renderSampleReadme(sample),
+    renderSampleReadme(sample, workspaceLevelTemplates),
     fileSystem,
     pathModule,
   );
+}
+
+function getIntegrationSteps(sample) {
+  if (Array.isArray(sample.integrationSteps)) {
+    return sample.integrationSteps;
+  }
+
+  if (Array.isArray(sample.integrations)) {
+    return sample.integrations.map((template) => integrationStep(template));
+  }
+
+  return [];
+}
+
+function buildIntegrationGeneratorOptions(
+  step,
+  projectName,
+  workspaceLevelTemplates = WORKSPACE_LEVEL_TEMPLATES,
+) {
+  const options = {
+    template: step.template,
+    ...(step.options ?? {}),
+  };
+
+  if (!workspaceLevelTemplates.has(step.template)) {
+    options.project = projectName;
+  }
+
+  return options;
 }
 
 function customizePackageJson(tree, sample) {
@@ -312,10 +433,12 @@ function renderSampleReadme(
     "pnpm add -D @mgwilt/nx-uv@beta",
     `pnpm nx g @mgwilt/nx-uv:workspace --name=${sample.workspaceName} --membersGlob='packages/py/*'`,
     `pnpm nx g @mgwilt/nx-uv:project ${sample.project.name} --projectType=${sample.project.projectType} --directory=${sample.project.directory}`,
-    ...sample.integrations.map((template) =>
-      workspaceLevelTemplates.has(template)
-        ? `pnpm nx g @mgwilt/nx-uv:integration --template=${template}`
-        : `pnpm nx g @mgwilt/nx-uv:integration --template=${template} --project=${sample.project.name}`,
+    ...getIntegrationSteps(sample).map((step) =>
+      renderIntegrationStepCommand(
+        step,
+        sample.project.name,
+        workspaceLevelTemplates,
+      ),
     ),
     `cd ${sample.project.directory}/${sample.project.name}`,
     ...sample.dependencyCommands,
@@ -340,6 +463,28 @@ function renderSampleReadme(
     "```",
     "",
   ].join("\n");
+}
+
+function renderIntegrationStepCommand(
+  step,
+  projectName,
+  workspaceLevelTemplates = WORKSPACE_LEVEL_TEMPLATES,
+) {
+  const args = [
+    "pnpm nx g @mgwilt/nx-uv:integration",
+    `--template=${step.template}`,
+  ];
+
+  if (!workspaceLevelTemplates.has(step.template)) {
+    args.push(`--project=${projectName}`);
+  }
+
+  const optionArgs = Object.entries(step.options ?? {})
+    .filter(([, value]) => value !== undefined)
+    .map(([key, value]) => `--${key}=${String(value)}`);
+
+  args.push(...optionArgs);
+  return args.join(" ");
 }
 
 function ensureDir(targetDir, fileSystem = fs) {
@@ -370,7 +515,10 @@ if (require.main === module) {
 module.exports = {
   SAMPLE_DEFINITIONS,
   WORKSPACE_LEVEL_TEMPLATES,
+  integrationStep,
   resolveGeneratorDependencies,
+  getIntegrationSteps,
+  buildIntegrationGeneratorOptions,
   main,
   removeManagedSamples,
   generateSample,
@@ -378,6 +526,7 @@ module.exports = {
   applyTreeToFs,
   renderSamplesIndex,
   renderSampleReadme,
+  renderIntegrationStepCommand,
   ensureDir,
   writeFile,
   runGenerateSamplesCli,

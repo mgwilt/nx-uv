@@ -1,0 +1,14 @@
+# Requires NVIDIA Container Toolkit on Linux (or NVIDIA driver + WSL2 backend on Windows).
+services:
+  pytorch-inference:
+    build:
+      context: .
+      dockerfile: Dockerfile.inference.nvidia
+    command: ['uv', 'run', '--', 'python', 'scripts/pytorch_inference_smoke.py']
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]

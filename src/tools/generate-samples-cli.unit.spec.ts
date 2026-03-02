@@ -37,7 +37,10 @@ const generateSamples = require("../../tools/generate-samples.cjs") as {
       workspaceDir: string;
       workspaceName: string;
       project: { name: string; projectType: string; directory: string };
-      integrations: string[];
+      integrationSteps: Array<{
+        template: string;
+        options?: Record<string, string | boolean>;
+      }>;
       dependencyCommands: string[];
       runTargets: string[];
     },
@@ -54,8 +57,26 @@ const generateSamples = require("../../tools/generate-samples.cjs") as {
       workspaceGenerator: (tree: unknown, options: unknown) => Promise<void>;
       projectGenerator: (tree: unknown, options: unknown) => Promise<void>;
       integrationGenerator: (tree: unknown, options: unknown) => Promise<void>;
+      workspaceLevelTemplates?: Set<string>;
     },
   ) => Promise<void>;
+  getIntegrationSteps: (sample: {
+    integrationSteps?: Array<{
+      template: string;
+      options?: Record<string, string | boolean>;
+    }>;
+    integrations?: string[];
+  }) => Array<{ template: string; options?: Record<string, string | boolean> }>;
+  buildIntegrationGeneratorOptions: (
+    step: { template: string; options?: Record<string, string | boolean> },
+    projectName: string,
+    workspaceLevelTemplates?: Set<string>,
+  ) => Record<string, string | boolean>;
+  renderIntegrationStepCommand: (
+    step: { template: string; options?: Record<string, string | boolean> },
+    projectName: string,
+    workspaceLevelTemplates?: Set<string>,
+  ) => string;
   main: (options?: {
     samplesRoot?: string;
     sampleDefinitions?: Array<
@@ -83,7 +104,10 @@ const generateSamples = require("../../tools/generate-samples.cjs") as {
       workspaceDir: string;
       workspaceName: string;
       project: { name: string; projectType: string; directory: string };
-      integrations: string[];
+      integrationSteps: Array<{
+        template: string;
+        options?: Record<string, string | boolean>;
+      }>;
       dependencyCommands: string[];
       runTargets: string[];
     },
@@ -129,7 +153,7 @@ function baseSample() {
       projectType: "app",
       directory: "packages/py",
     },
-    integrations: ["github", "fastapi"],
+    integrationSteps: [{ template: "github" }, { template: "fastapi" }],
     dependencyCommands: ["uv add fastapi"],
     runTargets: ["pnpm nx run api:test"],
   };
@@ -159,6 +183,75 @@ describe("generate-samples cli script helpers", () => {
     expect(readme).toContain(
       "pnpm nx g @mgwilt/nx-uv:integration --template=fastapi --project=api",
     );
+  });
+
+  it("normalizes integration steps from both legacy and structured sample definitions", () => {
+    const legacy = generateSamples.getIntegrationSteps({
+      integrations: ["github", "fastapi"],
+    });
+    const structured = generateSamples.getIntegrationSteps({
+      integrationSteps: [{ template: "pytorch", options: { backend: "rocm" } }],
+    });
+
+    expect(legacy).toEqual([
+      { template: "github", options: {} },
+      { template: "fastapi", options: {} },
+    ]);
+    expect(structured).toEqual([
+      { template: "pytorch", options: { backend: "rocm" } },
+    ]);
+  });
+
+  it("builds scoped integration generator options", () => {
+    expect(
+      generateSamples.buildIntegrationGeneratorOptions(
+        { template: "github", options: {} },
+        "api",
+        new Set(["github"]),
+      ),
+    ).toEqual({
+      template: "github",
+    });
+
+    expect(
+      generateSamples.buildIntegrationGeneratorOptions(
+        {
+          template: "pytorch",
+          options: {
+            backend: "cpu",
+            includeNotebook: false,
+          },
+        },
+        "api",
+        new Set(["github"]),
+      ),
+    ).toEqual({
+      template: "pytorch",
+      backend: "cpu",
+      includeNotebook: false,
+      project: "api",
+    });
+  });
+
+  it("renders integration commands with template options", () => {
+    const command = generateSamples.renderIntegrationStepCommand(
+      {
+        template: "pytorch",
+        options: {
+          backend: "cpu",
+          includeNotebook: false,
+          includeDocker: false,
+        },
+      },
+      "lab",
+      new Set(["github"]),
+    );
+
+    expect(command).toContain("--template=pytorch");
+    expect(command).toContain("--project=lab");
+    expect(command).toContain("--backend=cpu");
+    expect(command).toContain("--includeNotebook=false");
+    expect(command).toContain("--includeDocker=false");
   });
 
   it("renders samples index from passed definitions", () => {

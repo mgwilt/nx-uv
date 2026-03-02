@@ -22,21 +22,10 @@ import {
   TuiView,
   WorkspaceSnapshot,
 } from "./types";
-
-const INTEGRATION_TEMPLATES = [
-  "alternative-indexes",
-  "aws-lambda",
-  "coiled",
-  "dependency-bots",
-  "docker",
-  "fastapi",
-  "github",
-  "gitlab",
-  "jupyter",
-  "marimo",
-  "pre-commit",
-  "pytorch",
-];
+import {
+  INTEGRATION_TEMPLATES,
+  PYTORCH_BACKENDS,
+} from "../generators/integration/templates";
 
 export function NxUvApp(props: {
   options: TuiLaunchOptions;
@@ -683,7 +672,7 @@ function integrationFields(snapshot: WorkspaceSnapshot): FormFieldDefinition[] {
       key: "template",
       label: "template",
       type: "select",
-      options: INTEGRATION_TEMPLATES,
+      options: [...INTEGRATION_TEMPLATES],
       defaultValue: "fastapi",
       required: true,
     },
@@ -708,6 +697,27 @@ function integrationFields(snapshot: WorkspaceSnapshot): FormFieldDefinition[] {
       type: "text",
       defaultValue: "",
       placeholder: "optional",
+    },
+    {
+      key: "backend",
+      label: "backend (pytorch)",
+      type: "select",
+      options: ["", ...PYTORCH_BACKENDS],
+      defaultValue: "",
+    },
+    {
+      key: "includeNotebook",
+      label: "includeNotebook (pytorch)",
+      type: "select",
+      options: ["", "true", "false"],
+      defaultValue: "",
+    },
+    {
+      key: "includeDocker",
+      label: "includeDocker (pytorch)",
+      type: "select",
+      options: ["", "true", "false"],
+      defaultValue: "",
     },
     {
       key: "overwrite",

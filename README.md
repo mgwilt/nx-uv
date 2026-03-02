@@ -252,20 +252,20 @@ Use integration templates to scaffold common [uv](https://docs.astral.sh/uv/) ec
 
 ### Template matrix
 
-| Template              | Scope          | Files generated                                     | Best for                                                                                                                                                   |
-| --------------------- | -------------- | --------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `alternative-indexes` | `baseDir`      | `<baseDir>/uv.indexes.toml.snippet`                 | Defining custom/internal [Python](https://www.python.org/) indexes                                                                                         |
-| `aws-lambda`          | `baseDir`      | `<baseDir>/Dockerfile.lambda`                       | Packaging [uv](https://docs.astral.sh/uv/)-based [AWS Lambda](https://aws.amazon.com/lambda/) workloads                                                    |
-| `coiled`              | `baseDir`      | `<baseDir>/scripts/coiled-example.py`               | Starting distributed [Python](https://www.python.org/) experiments with [Coiled](https://coiled.io/)                                                       |
-| `dependency-bots`     | workspace root | `renovate.json`, `.github/dependabot.yml`           | Automated dependency update workflows with [Renovate](https://docs.renovatebot.com/) and [Dependabot](https://docs.github.com/en/code-security/dependabot) |
-| `docker`              | `baseDir`      | `<baseDir>/Dockerfile`                              | Containerizing a [uv](https://docs.astral.sh/uv/) project with [Docker](https://www.docker.com/)                                                           |
-| `fastapi`             | `baseDir`      | `<baseDir>/main.py`, `<baseDir>/Dockerfile.fastapi` | Bootstrapping a [FastAPI](https://fastapi.tiangolo.com/) service with [uv](https://docs.astral.sh/uv/)                                                     |
-| `github`              | workspace root | `.github/workflows/uv-ci.yml`                       | [GitHub Actions](https://github.com/features/actions) Nx-first CI starter using `nx affected`                                                              |
-| `gitlab`              | workspace root | `.gitlab-ci.uv.yml`                                 | [GitLab CI/CD](https://docs.gitlab.com/ee/ci/) Nx-first CI starter using `nx run-many`                                                                     |
-| `jupyter`             | `baseDir`      | `<baseDir>/scripts/setup-jupyter-kernel.sh`         | Registering a [uv](https://docs.astral.sh/uv/)-managed [Jupyter](https://jupyter.org/) kernel                                                              |
-| `marimo`              | `baseDir`      | `<baseDir>/notebooks/example.marimo.py`             | Starting [marimo](https://marimo.io/) notebook workflows                                                                                                   |
-| `pre-commit`          | workspace root | `.pre-commit-config.yaml`                           | Local code quality hooks for [uv](https://docs.astral.sh/uv/) projects using [pre-commit](https://pre-commit.com/)                                         |
-| `pytorch`             | `baseDir`      | `<baseDir>/uv.pytorch.toml.snippet`                 | Configuring [PyTorch](https://pytorch.org/) index/source snippets                                                                                          |
+| Template              | Scope          | Files generated                                                                        | Best for                                                                                                                                                   |
+| --------------------- | -------------- | -------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `alternative-indexes` | `baseDir`      | `<baseDir>/uv.indexes.toml.snippet`                                                    | Defining custom/internal [Python](https://www.python.org/) indexes                                                                                         |
+| `aws-lambda`          | `baseDir`      | `<baseDir>/Dockerfile.lambda`                                                          | Packaging [uv](https://docs.astral.sh/uv/)-based [AWS Lambda](https://aws.amazon.com/lambda/) workloads                                                    |
+| `coiled`              | `baseDir`      | `<baseDir>/scripts/coiled-example.py`                                                  | Starting distributed [Python](https://www.python.org/) experiments with [Coiled](https://coiled.io/)                                                       |
+| `dependency-bots`     | workspace root | `renovate.json`, `.github/dependabot.yml`                                              | Automated dependency update workflows with [Renovate](https://docs.renovatebot.com/) and [Dependabot](https://docs.github.com/en/code-security/dependabot) |
+| `docker`              | `baseDir`      | `<baseDir>/Dockerfile`                                                                 | Containerizing a [uv](https://docs.astral.sh/uv/) project with [Docker](https://www.docker.com/)                                                           |
+| `fastapi`             | `baseDir`      | `<baseDir>/main.py`, `<baseDir>/Dockerfile.fastapi`                                    | Bootstrapping a [FastAPI](https://fastapi.tiangolo.com/) service with [uv](https://docs.astral.sh/uv/)                                                     |
+| `github`              | workspace root | `.github/workflows/uv-ci.yml`                                                          | [GitHub Actions](https://github.com/features/actions) Nx-first CI starter using `nx affected`                                                              |
+| `gitlab`              | workspace root | `.gitlab-ci.uv.yml`                                                                    | [GitLab CI/CD](https://docs.gitlab.com/ee/ci/) Nx-first CI starter using `nx run-many`                                                                     |
+| `jupyter`             | `baseDir`      | `<baseDir>/scripts/setup-jupyter-kernel.sh`                                            | Registering a [uv](https://docs.astral.sh/uv/)-managed [Jupyter](https://jupyter.org/) kernel                                                              |
+| `marimo`              | `baseDir`      | `<baseDir>/notebooks/example.marimo.py`                                                | Starting [marimo](https://marimo.io/) notebook workflows                                                                                                   |
+| `pre-commit`          | workspace root | `.pre-commit-config.yaml`                                                              | Local code quality hooks for [uv](https://docs.astral.sh/uv/) projects using [pre-commit](https://pre-commit.com/)                                         |
+| `pytorch`             | `baseDir`      | `<baseDir>/uv.pytorch.toml.snippet` plus optional notebook and NVIDIA inference assets | Configuring [PyTorch](https://pytorch.org/) for CPU/CUDA/ROCm, notebook workflows, and NVIDIA containerized inference                                      |
 
 ### Command examples for all templates
 
@@ -282,6 +282,8 @@ pnpm nx g @mgwilt/nx-uv:integration --template=jupyter --project=api
 pnpm nx g @mgwilt/nx-uv:integration --template=marimo --project=api
 pnpm nx g @mgwilt/nx-uv:integration --template=pre-commit
 pnpm nx g @mgwilt/nx-uv:integration --template=pytorch --project=api
+pnpm nx g @mgwilt/nx-uv:integration --template=pytorch --project=api --backend=rocm --includeDocker=false
+pnpm nx g @mgwilt/nx-uv:integration --template=pytorch --project=api --backend=cpu --includeNotebook=false --includeDocker=false
 ```
 
 ### Common options
@@ -289,6 +291,9 @@ pnpm nx g @mgwilt/nx-uv:integration --template=pytorch --project=api
 - `--overwrite=true` replaces existing files instead of skipping them.
 - `--directory=<path>` writes baseDir-aware templates into a non-project directory.
 - `--skipFormat=true` skips formatter execution after generation.
+- `--backend=<cuda|rocm|cpu>` applies to `template=pytorch` (default: `cuda`).
+- `--includeNotebook=<true|false>` applies to `template=pytorch` (default: `true`).
+- `--includeDocker=<true|false>` applies to `template=pytorch` (default: `true` for `cuda`, `false` for other backends).
 - Prefer `--project` for app/lib scaffolds and no location flag for workspace-level templates.
 
 ### Notes and pitfalls
@@ -296,6 +301,8 @@ pnpm nx g @mgwilt/nx-uv:integration --template=pytorch --project=api
 - Templates are starter scaffolds; you should review and harden generated files for production use.
 - Running the same template multiple times without `--overwrite=true` leaves existing files unchanged.
 - Workspace-level templates are intentionally global and may affect repository-wide automation.
+- `template=pytorch` now defaults to `--backend=cuda` and emits CUDA-oriented snippets by default.
+- NVIDIA inference Docker/Compose assets from `template=pytorch` are generated only for `--backend=cuda`.
 
 ## Compatibility and versioning
 
