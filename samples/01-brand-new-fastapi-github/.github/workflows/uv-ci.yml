@@ -1,17 +1,31 @@
-name: uv-ci
+name: nx-uv-ci
 
 on:
   push:
   pull_request:
 
 jobs:
-  test:
+  quality:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Install uv
-        uses: astral-sh/setup-uv@v6
-      - name: Sync dependencies
-        run: uv sync --frozen
-      - name: Run tests
-        run: uv run -- pytest -q
+        with:
+          fetch-depth: 0
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Derive base and head SHAs for Nx affected
+        uses: nrwl/nx-set-shas@v4
+      - name: Run affected quality targets
+        run: >-
+          pnpm nx affected
+          -t test,lint,build
+          --base="$NX_BASE"
+          --head="$NX_HEAD"
+          --outputStyle=static
