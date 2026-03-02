@@ -126,19 +126,19 @@ jobs:
       - name: Publish release to npm (Trusted Publishing)
         id: publish_npm_trusted
         continue-on-error: true
-        run: pnpm nx release publish --tag ${{ steps.release_tag.outputs.npm_tag }} --access public
+        run: npm publish --provenance --tag ${{ steps.release_tag.outputs.npm_tag }} --access public
+        working-directory: dist
         env:
-          NPM_CONFIG_PROVENANCE: true
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Publish release to npm (Token Fallback)
         id: publish_npm_token
         if: ${{ env.NPM_ACCESS_TOKEN != '' && steps.publish_npm_trusted.outcome != 'success' }}
         continue-on-error: true
-        run: pnpm nx release publish --tag ${{ steps.release_tag.outputs.npm_tag }} --access public
+        run: npm publish --provenance --tag ${{ steps.release_tag.outputs.npm_tag }} --access public
+        working-directory: dist
         env:
           NODE_AUTH_TOKEN: ${{ env.NPM_ACCESS_TOKEN }}
-          NPM_CONFIG_PROVENANCE: true
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Configure npm for GitHub Packages
