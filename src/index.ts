@@ -45,6 +45,12 @@ export type {
   UvSelfCommand,
 } from "./executors/self/schema";
 
+export { default as studioExecutor } from "./executors/studio/studio";
+export type {
+  StudioExecutorSchema,
+  StudioInitialView,
+} from "./executors/studio/schema";
+
 export { default as workspaceGenerator } from "./generators/workspace/workspace";
 export type { WorkspaceGeneratorSchema } from "./generators/workspace/schema";
 
@@ -59,3 +65,6 @@ export type {
   IntegrationGeneratorSchema,
   IntegrationTemplate,
 } from "./generators/integration/schema";
+
+export { runNxUvTui } from "./tui";
+export type { TuiLaunchOptions, TuiView } from "./tui";

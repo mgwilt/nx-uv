@@ -181,6 +181,12 @@ function buildTargets(
         cwd: projectRoot,
       },
     };
+    baseTargets[`${targetPrefix}tui`] = {
+      executor: "@mgwilt/nx-uv:studio",
+      options: {
+        cwd: projectRoot,
+      },
+    };
   }
 
   return baseTargets;

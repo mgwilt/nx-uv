@@ -106,6 +106,7 @@ describe("createNodesV2", () => {
         "uv:tool:list": expect.any(Object),
         "uv:cache:size": expect.any(Object),
         "uv:self:version": expect.any(Object),
+        "uv:tui": expect.any(Object),
       }),
     );
   });

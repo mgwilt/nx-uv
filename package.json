@@ -6,6 +6,9 @@
   "type": "commonjs",
   "main": "./src/index.js",
   "types": "./src/index.d.ts",
+  "bin": {
+    "nx-uv": "./src/bin/nx-uv.js"
+  },
   "private": false,
   "scripts": {
     "build": "nx run nx-uv:build",
@@ -18,6 +21,7 @@
     "test:integration": "nx run nx-uv:test-integration",
     "test:e2e": "nx run nx-uv:test-e2e",
     "test:coverage": "nx run nx-uv:test-coverage",
+    "tui:local": "pnpm nx run nx-uv:build && node dist/src/bin/nx-uv.js tui",
     "quality:bootstrap": "node tools/check-nx-bootstrap.cjs",
     "quality:fallback": "pnpm exec eslint . && pnpm exec tsc -p tsconfig.lib.json --noEmit && pnpm exec tsc -p tsconfig.spec.json --noEmit && pnpm exec vitest run -c vitest.unit.config.mts && pnpm exec vitest run -c vitest.integration.config.mts && pnpm exec vitest run -c vitest.e2e.config.mts && pnpm exec vitest run -c vitest.coverage.config.mts",
     "quality:local": "pnpm quality:bootstrap && nx run nx-uv:quality-local",
@@ -45,7 +49,9 @@
     "@iarna/toml": "^2.2.5",
     "@nx/devkit": "22.5.3",
     "@nx/vite": "22.5.3",
+    "ink": "^3.2.0",
     "minimatch": "^10.2.4",
+    "react": "^17.0.2",
     "tslib": "^2.3.0",
     "vitest": "^4.0.18"
   },
@@ -63,6 +69,7 @@
     "@swc-node/register": "^1.11.1",
     "@swc/core": "^1.15.18",
     "@types/node": "^20.19.9",
+    "@types/react": "^17.0.89",
     "@vitest/coverage-v8": "^4.0.8",
     "eslint": "^9.39.0",
     "eslint-config-prettier": "^10.1.8",

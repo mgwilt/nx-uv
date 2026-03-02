@@ -39,6 +39,11 @@
       "implementation": "./src/executors/self/self",
       "schema": "./src/executors/self/schema.json",
       "description": "Run uv self subcommands."
+    },
+    "studio": {
+      "implementation": "./src/executors/studio/studio",
+      "schema": "./src/executors/studio/schema.json",
+      "description": "Launch the interactive nx-uv terminal manager."
     }
   }
 }

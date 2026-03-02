@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/schema",
+  "version": 2,
+  "title": "nx-uv studio executor",
+  "description": "Launch the interactive nx-uv terminal manager.",
+  "type": "object",
+  "properties": {
+    "cwd": {
+      "type": "string",
+      "description": "Directory used to discover the target Nx workspace."
+    },
+    "readonly": {
+      "type": "boolean",
+      "default": false,
+      "description": "Disable mutating actions and run preview-only mode."
+    },
+    "initialView": {
+      "type": "string",
+      "enum": [
+        "dashboard",
+        "workspace",
+        "project",
+        "integration",
+        "convert",
+        "inference",
+        "tasks",
+        "uv"
+      ],
+      "default": "dashboard"
+    }
+  },
+  "additionalProperties": false
+}
