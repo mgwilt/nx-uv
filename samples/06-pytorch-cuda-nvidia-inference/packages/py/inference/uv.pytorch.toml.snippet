@@ -1,0 +1,18 @@
+# PyTorch CUDA 12.4 snippet for pyproject.toml.
+# Pinned package set:
+#   torch==2.5.1
+#   torchvision==0.20.1
+#   torchaudio==2.5.1
+# Suggested install command:
+#   uv add "torch==2.5.1" "torchvision==0.20.1" "torchaudio==2.5.1"
+# Backend channel: cu124
+
+[[tool.uv.index]]
+name = "pytorch-cu124"
+url = "https://download.pytorch.org/whl/cu124"
+explicit = true
+
+[tool.uv.sources]
+torch = { index = "pytorch-cu124" }
+torchvision = { index = "pytorch-cu124" }
+torchaudio = { index = "pytorch-cu124" }

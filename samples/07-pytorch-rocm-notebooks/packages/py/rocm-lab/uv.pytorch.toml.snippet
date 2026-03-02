@@ -1,0 +1,18 @@
+# PyTorch ROCm 6.2.4 snippet for pyproject.toml.
+# Pinned package set:
+#   torch==2.5.1
+#   torchvision==0.20.1
+#   torchaudio==2.5.1
+# Suggested install command:
+#   uv add "torch==2.5.1" "torchvision==0.20.1" "torchaudio==2.5.1"
+# Backend channel: rocm6.2.4
+
+[[tool.uv.index]]
+name = "pytorch-rocm624"
+url = "https://download.pytorch.org/whl/rocm6.2.4"
+explicit = true
+
+[tool.uv.sources]
+torch = { index = "pytorch-rocm624" }
+torchvision = { index = "pytorch-rocm624" }
+torchaudio = { index = "pytorch-rocm624" }

@@ -1,0 +1,10 @@
+{
+  "name": "acme-cuda",
+  "dependencies": {},
+  "devDependencies": {
+    "@mgwilt/nx-uv": "beta",
+    "nx": "22.5.3"
+  },
+  "private": true,
+  "packageManager": "pnpm@10"
+}

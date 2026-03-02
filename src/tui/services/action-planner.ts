@@ -50,7 +50,7 @@ export function planIntegrationGenerator(
   return generatorPlan(workspaceRoot, {
     title: "Apply integration template",
     summary:
-      "Scaffold integration files for CI, Docker, notebooks, or dependency bots.",
+      "Scaffold integration files for CI, Docker, notebooks, dependency bots, and AI/GPU workflows.",
     generator: "@mgwilt/nx-uv:integration",
     values,
   });

@@ -83,7 +83,7 @@ describe("integration generator", () => {
     expect(workflow).toBe("existing-workflow\n");
   });
 
-  it("generates the remaining integration templates at workspace root", async () => {
+  it("generates non-pytorch templates at workspace root", async () => {
     const cases: Array<{
       template: IntegrationTemplate;
       expectedPath: string;
@@ -116,11 +116,6 @@ describe("integration generator", () => {
         expectedSnippet: "app = marimo.App()",
       },
       {
-        template: "pytorch",
-        expectedPath: "uv.pytorch.toml.snippet",
-        expectedSnippet: 'url = "https://download.pytorch.org/whl/cpu"',
-      },
-      {
         template: "fastapi",
         expectedPath: "Dockerfile.fastapi",
         expectedSnippet: "uvicorn",
@@ -146,6 +141,106 @@ describe("integration generator", () => {
       const generated = tree.read(testCase.expectedPath, "utf-8") ?? "";
       expect(generated).toContain(testCase.expectedSnippet);
     }
+  });
+
+  it("generates pytorch CUDA defaults with notebooks and NVIDIA assets", async () => {
+    await integrationGenerator(tree, {
+      template: "pytorch",
+      directory: "packages/py/lab",
+      skipFormat: true,
+    });
+
+    const snippet =
+      tree.read("packages/py/lab/uv.pytorch.toml.snippet", "utf-8") ?? "";
+    const notebook =
+      tree.read("packages/py/lab/notebooks/pytorch-inference.ipynb", "utf-8") ??
+      "";
+    const marimo =
+      tree.read(
+        "packages/py/lab/notebooks/pytorch-inference.marimo.py",
+        "utf-8",
+      ) ?? "";
+    const dockerfile =
+      tree.read("packages/py/lab/Dockerfile.inference.nvidia", "utf-8") ?? "";
+    const compose =
+      tree.read("packages/py/lab/compose.inference.nvidia.yml", "utf-8") ?? "";
+    const smoke =
+      tree.read(
+        "packages/py/lab/scripts/pytorch_inference_smoke.py",
+        "utf-8",
+      ) ?? "";
+
+    expect(snippet).toContain('url = "https://download.pytorch.org/whl/cu124"');
+    expect(snippet).toContain('name = "pytorch-cu124"');
+    expect(notebook).toContain("PyTorch Inference Notebook");
+    expect(marimo).toContain('expected_backend = "cuda"');
+    expect(dockerfile).toContain(
+      "nvidia/cuda:12.4.1-cudnn-runtime-ubuntu22.04",
+    );
+    expect(compose).toContain("driver: nvidia");
+    expect(compose).toContain("capabilities: [gpu]");
+    expect(smoke).toContain("CUDA is not available");
+    expect(smoke).toContain("        y = model(x)");
+  });
+
+  it("supports pytorch cpu backend without notebooks or docker assets", async () => {
+    await integrationGenerator(tree, {
+      template: "pytorch",
+      backend: "cpu",
+      includeNotebook: false,
+      includeDocker: false,
+      directory: "packages/py/lab",
+      skipFormat: true,
+    });
+
+    const snippet =
+      tree.read("packages/py/lab/uv.pytorch.toml.snippet", "utf-8") ?? "";
+
+    expect(snippet).toContain('url = "https://download.pytorch.org/whl/cpu"');
+    expect(
+      tree.exists("packages/py/lab/notebooks/pytorch-inference.ipynb"),
+    ).toBe(false);
+    expect(tree.exists("packages/py/lab/Dockerfile.inference.nvidia")).toBe(
+      false,
+    );
+  });
+
+  it("supports pytorch rocm backend and defaults includeDocker to false", async () => {
+    await integrationGenerator(tree, {
+      template: "pytorch",
+      backend: "rocm",
+      directory: "packages/py/lab",
+      skipFormat: true,
+    });
+
+    const snippet =
+      tree.read("packages/py/lab/uv.pytorch.toml.snippet", "utf-8") ?? "";
+    const marimo =
+      tree.read(
+        "packages/py/lab/notebooks/pytorch-inference.marimo.py",
+        "utf-8",
+      ) ?? "";
+
+    expect(snippet).toContain(
+      'url = "https://download.pytorch.org/whl/rocm6.2.4"',
+    );
+    expect(marimo).toContain('expected_backend = "rocm"');
+    expect(tree.exists("packages/py/lab/Dockerfile.inference.nvidia")).toBe(
+      false,
+    );
+  });
+
+  it("rejects non-cuda pytorch docker generation", async () => {
+    await expect(
+      integrationGenerator(tree, {
+        template: "pytorch",
+        backend: "rocm",
+        includeDocker: true,
+        skipFormat: true,
+      }),
+    ).rejects.toThrow(
+      "template=pytorch with includeDocker=true currently supports backend=cuda only.",
+    );
   });
 
   it("resolves base directory from project configuration", async () => {

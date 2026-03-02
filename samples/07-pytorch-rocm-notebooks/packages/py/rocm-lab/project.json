@@ -1,0 +1,75 @@
+{
+  "name": "rocm-lab",
+  "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "packages/py/rocm-lab/src",
+  "projectType": "library",
+  "tags": [],
+  "targets": {
+    "sync": {
+      "executor": "@mgwilt/nx-uv:project",
+      "options": {
+        "cwd": "packages/py/rocm-lab",
+        "command": "sync"
+      }
+    },
+    "lock": {
+      "executor": "@mgwilt/nx-uv:project",
+      "options": {
+        "cwd": "packages/py/rocm-lab",
+        "command": "lock"
+      }
+    },
+    "tree": {
+      "executor": "@mgwilt/nx-uv:project",
+      "options": {
+        "cwd": "packages/py/rocm-lab",
+        "command": "tree"
+      }
+    },
+    "run": {
+      "executor": "@mgwilt/nx-uv:project",
+      "options": {
+        "cwd": "packages/py/rocm-lab",
+        "command": "run",
+        "commandArgs": ["--", "python", "-V"]
+      }
+    },
+    "test": {
+      "executor": "@mgwilt/nx-uv:project",
+      "options": {
+        "cwd": "packages/py/rocm-lab",
+        "command": "run",
+        "commandArgs": ["--", "pytest", "-q"]
+      }
+    },
+    "lint": {
+      "executor": "@mgwilt/nx-uv:project",
+      "options": {
+        "cwd": "packages/py/rocm-lab",
+        "command": "run",
+        "commandArgs": ["--", "ruff", "check", "."]
+      }
+    },
+    "format": {
+      "executor": "@mgwilt/nx-uv:project",
+      "options": {
+        "cwd": "packages/py/rocm-lab",
+        "command": "format"
+      }
+    },
+    "build": {
+      "executor": "@mgwilt/nx-uv:project",
+      "options": {
+        "cwd": "packages/py/rocm-lab",
+        "command": "build"
+      }
+    },
+    "uv": {
+      "executor": "@mgwilt/nx-uv:uv",
+      "options": {
+        "cwd": "packages/py/rocm-lab",
+        "args": ["help"]
+      }
+    }
+  }
+}

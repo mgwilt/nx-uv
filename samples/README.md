@@ -20,5 +20,9 @@ pnpm samples:generate
   - Notebook and ML bootstrap with [Jupyter](https://jupyter.org/), [marimo](https://marimo.io/), [Coiled](https://coiled.io/), and [PyTorch](https://pytorch.org/).
 - [`05-dependency-automation-ci`](05-dependency-automation-ci/README.md)
   - Dependency automation with [Renovate](https://docs.renovatebot.com/) and [Dependabot](https://docs.github.com/en/code-security/dependabot) plus [GitHub Actions](https://github.com/features/actions) and [GitLab CI/CD](https://docs.gitlab.com/ee/ci/) templates.
+- [`06-pytorch-cuda-nvidia-inference`](06-pytorch-cuda-nvidia-inference/README.md)
+  - GPU-first [PyTorch](https://pytorch.org/) setup with CUDA wheel source, notebooks, and NVIDIA inference container scaffolding.
+- [`07-pytorch-rocm-notebooks`](07-pytorch-rocm-notebooks/README.md)
+  - ROCm-oriented [PyTorch](https://pytorch.org/) setup with pinned wheel source and generated notebook examples.
 
 Each sample README includes the full command sequence used to generate that sample.
