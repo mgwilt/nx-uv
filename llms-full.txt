@@ -20,6 +20,7 @@ Source: https://github.com/mgwilt/nx-uv/blob/main/README.md
 
 [![CI](https://github.com/mgwilt/nx-uv/actions/workflows/ci.yml/badge.svg)](https://github.com/mgwilt/nx-uv/actions/workflows/ci.yml)
 [![Coverage](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/mgwilt/nx-uv/badges/.github/badges/coverage.json)](https://github.com/mgwilt/nx-uv/blob/badges/.github/badges/coverage.json)
+[![npm release](https://img.shields.io/npm/v/%40mgwilt%2Fnx-uv/latest?label=npm%20release&cacheSeconds=300)](https://www.npmjs.com/package/@mgwilt/nx-uv?activeTab=versions)
 [![npm beta](https://img.shields.io/npm/v/%40mgwilt%2Fnx-uv/beta?label=npm%20beta&cacheSeconds=300)](https://www.npmjs.com/package/@mgwilt/nx-uv?activeTab=versions)
 
 ## Why this plugin exists
