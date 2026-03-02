@@ -250,40 +250,74 @@ Use integration templates to scaffold common [uv](https://docs.astral.sh/uv/) ec
   - `dependency-bots`
   - `pre-commit`
 
-### Template matrix
+### Templates by workload
 
-| Template              | Scope          | Files generated                                                                        | Best for                                                                                                                                                   |
-| --------------------- | -------------- | -------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `alternative-indexes` | `baseDir`      | `<baseDir>/uv.indexes.toml.snippet`                                                    | Defining custom/internal [Python](https://www.python.org/) indexes                                                                                         |
-| `aws-lambda`          | `baseDir`      | `<baseDir>/Dockerfile.lambda`                                                          | Packaging [uv](https://docs.astral.sh/uv/)-based [AWS Lambda](https://aws.amazon.com/lambda/) workloads                                                    |
-| `coiled`              | `baseDir`      | `<baseDir>/scripts/coiled-example.py`                                                  | Starting distributed [Python](https://www.python.org/) experiments with [Coiled](https://coiled.io/)                                                       |
-| `dependency-bots`     | workspace root | `renovate.json`, `.github/dependabot.yml`                                              | Automated dependency update workflows with [Renovate](https://docs.renovatebot.com/) and [Dependabot](https://docs.github.com/en/code-security/dependabot) |
-| `docker`              | `baseDir`      | `<baseDir>/Dockerfile`                                                                 | Containerizing a [uv](https://docs.astral.sh/uv/) project with [Docker](https://www.docker.com/)                                                           |
-| `fastapi`             | `baseDir`      | `<baseDir>/main.py`, `<baseDir>/Dockerfile.fastapi`                                    | Bootstrapping a [FastAPI](https://fastapi.tiangolo.com/) service with [uv](https://docs.astral.sh/uv/)                                                     |
-| `github`              | workspace root | `.github/workflows/uv-ci.yml`                                                          | [GitHub Actions](https://github.com/features/actions) Nx-first CI starter using `nx affected`                                                              |
-| `gitlab`              | workspace root | `.gitlab-ci.uv.yml`                                                                    | [GitLab CI/CD](https://docs.gitlab.com/ee/ci/) Nx-first CI starter using `nx run-many`                                                                     |
-| `jupyter`             | `baseDir`      | `<baseDir>/scripts/setup-jupyter-kernel.sh`                                            | Registering a [uv](https://docs.astral.sh/uv/)-managed [Jupyter](https://jupyter.org/) kernel                                                              |
-| `marimo`              | `baseDir`      | `<baseDir>/notebooks/example.marimo.py`                                                | Starting [marimo](https://marimo.io/) notebook workflows                                                                                                   |
-| `pre-commit`          | workspace root | `.pre-commit-config.yaml`                                                              | Local code quality hooks for [uv](https://docs.astral.sh/uv/) projects using [pre-commit](https://pre-commit.com/)                                         |
-| `pytorch`             | `baseDir`      | `<baseDir>/uv.pytorch.toml.snippet` plus optional notebook and NVIDIA inference assets | Configuring [PyTorch](https://pytorch.org/) for CPU/CUDA/ROCm, notebook workflows, and NVIDIA containerized inference                                      |
+#### CI and repo automation
 
-### Command examples for all templates
+| Template          | Best for                                                                                                                                                   |
+| ----------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `github`          | [GitHub Actions](https://github.com/features/actions) Nx-first CI starter using `nx affected`                                                              |
+| `gitlab`          | [GitLab CI/CD](https://docs.gitlab.com/ee/ci/) Nx-first CI starter using `nx run-many`                                                                     |
+| `dependency-bots` | Automated dependency update workflows with [Renovate](https://docs.renovatebot.com/) and [Dependabot](https://docs.github.com/en/code-security/dependabot) |
+| `pre-commit`      | Local code quality hooks for [uv](https://docs.astral.sh/uv/) projects using [pre-commit](https://pre-commit.com/)                                         |
+
+#### Services and deployment
+
+| Template     | Best for                                                                                                |
+| ------------ | ------------------------------------------------------------------------------------------------------- |
+| `fastapi`    | Bootstrapping a [FastAPI](https://fastapi.tiangolo.com/) service with [uv](https://docs.astral.sh/uv/)  |
+| `docker`     | Containerizing a [uv](https://docs.astral.sh/uv/) project with [Docker](https://www.docker.com/)        |
+| `aws-lambda` | Packaging [uv](https://docs.astral.sh/uv/)-based [AWS Lambda](https://aws.amazon.com/lambda/) workloads |
+
+#### Data science and AI workflows
+
+| Template  | Best for                                                                                                              |
+| --------- | --------------------------------------------------------------------------------------------------------------------- |
+| `jupyter` | Registering a [uv](https://docs.astral.sh/uv/)-managed [Jupyter](https://jupyter.org/) kernel                         |
+| `marimo`  | Starting [marimo](https://marimo.io/) notebook workflows                                                              |
+| `pytorch` | Configuring [PyTorch](https://pytorch.org/) for CPU/CUDA/ROCm, notebook workflows, and NVIDIA containerized inference |
+| `coiled`  | Starting distributed [Python](https://www.python.org/) experiments with [Coiled](https://coiled.io/)                  |
+
+#### Package source configuration
+
+| Template              | Best for                                                           |
+| --------------------- | ------------------------------------------------------------------ |
+| `alternative-indexes` | Defining custom/internal [Python](https://www.python.org/) indexes |
+
+### Command examples by workload
+
+#### CI and repo automation
 
 ```bash
-pnpm nx g @mgwilt/nx-uv:integration --template=alternative-indexes --project=api
-pnpm nx g @mgwilt/nx-uv:integration --template=aws-lambda --project=api
-pnpm nx g @mgwilt/nx-uv:integration --template=coiled --project=api
-pnpm nx g @mgwilt/nx-uv:integration --template=dependency-bots
-pnpm nx g @mgwilt/nx-uv:integration --template=docker --project=api
-pnpm nx g @mgwilt/nx-uv:integration --template=fastapi --project=api
 pnpm nx g @mgwilt/nx-uv:integration --template=github
 pnpm nx g @mgwilt/nx-uv:integration --template=gitlab
+pnpm nx g @mgwilt/nx-uv:integration --template=dependency-bots
+pnpm nx g @mgwilt/nx-uv:integration --template=pre-commit
+```
+
+#### Services and deployment
+
+```bash
+pnpm nx g @mgwilt/nx-uv:integration --template=fastapi --project=api
+pnpm nx g @mgwilt/nx-uv:integration --template=docker --project=api
+pnpm nx g @mgwilt/nx-uv:integration --template=aws-lambda --project=api
+```
+
+#### Data science and AI workflows
+
+```bash
 pnpm nx g @mgwilt/nx-uv:integration --template=jupyter --project=api
 pnpm nx g @mgwilt/nx-uv:integration --template=marimo --project=api
-pnpm nx g @mgwilt/nx-uv:integration --template=pre-commit
 pnpm nx g @mgwilt/nx-uv:integration --template=pytorch --project=api
 pnpm nx g @mgwilt/nx-uv:integration --template=pytorch --project=api --backend=rocm --includeDocker=false
 pnpm nx g @mgwilt/nx-uv:integration --template=pytorch --project=api --backend=cpu --includeNotebook=false --includeDocker=false
+pnpm nx g @mgwilt/nx-uv:integration --template=coiled --project=api
+```
+
+#### Package source configuration
+
+```bash
+pnpm nx g @mgwilt/nx-uv:integration --template=alternative-indexes --project=api
 ```
 
 ### Common options
