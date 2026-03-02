@@ -92,7 +92,7 @@ jobs:
       - name: Run affected quality targets
         run: >-
           pnpm nx affected
-          -t test,lint,build
+          -t test,lint,typecheck,build
           --base="$NX_BASE"
           --head="$NX_HEAD"
           --outputStyle=static
@@ -118,7 +118,7 @@ quality:nx:
     - corepack prepare pnpm@10 --activate
     - pnpm install --frozen-lockfile
   script:
-    - pnpm nx run-many -t test,lint,build --all --outputStyle=static
+    - pnpm nx run-many -t test,lint,typecheck,build --all --outputStyle=static
 `,
         },
       ];

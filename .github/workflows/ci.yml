@@ -12,7 +12,12 @@ permissions:
 jobs:
   affected:
     if: ${{ github.event_name == 'pull_request' }}
+    name: affected (Node ${{ matrix.node-version }})
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node-version: [20, 22, 24]
     steps:
       - uses: actions/checkout@v4
         with:
@@ -24,7 +29,7 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: ${{ matrix.node-version }}
           cache: pnpm
 
       - name: Setup uv
@@ -34,6 +39,9 @@ jobs:
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
+
+      - name: Check Nx bootstrap health
+        run: pnpm quality:bootstrap
 
       - name: Derive base and head SHAs for Nx affected
         uses: nrwl/nx-set-shas@v4
@@ -50,8 +58,42 @@ jobs:
           --nxBail
           --outputStyle=static
 
-  full:
+  full-quality:
     if: ${{ github.event_name == 'push' }}
+    name: full quality (Node ${{ matrix.node-version }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node-version: [20, 22, 24]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: pnpm
+
+      - name: Setup uv
+        uses: astral-sh/setup-uv@v4
+        with:
+          enable-cache: false
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run full quality gate
+        run: pnpm quality:ci
+
+  publish-coverage-badge:
+    if: ${{ github.event_name == 'push' }}
+    needs: full-quality
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -66,7 +108,7 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: pnpm
 
       - name: Setup uv
@@ -77,8 +119,11 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Run full quality gate
-        run: pnpm quality:ci
+      - name: Check Nx bootstrap health
+        run: pnpm quality:bootstrap
+
+      - name: Run coverage target
+        run: pnpm nx run nx-uv:test-coverage --outputStyle=static
 
       - name: Generate coverage badge payload
         run: pnpm coverage:badge
