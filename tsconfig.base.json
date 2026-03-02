@@ -11,6 +11,9 @@
     "skipLibCheck": true,
     "skipDefaultLibCheck": true,
     "strict": true,
-    "baseUrl": "."
+    "baseUrl": ".",
+    "paths": {
+      "@mgwilt/nx-uv": ["./src/index.ts"]
+    }
   }
 }
