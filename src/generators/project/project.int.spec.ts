@@ -168,6 +168,35 @@ describe("project generator", () => {
     expect(pyproject).toContain('exclude = [ "packages/py/legacy-*" ]');
   });
 
+  it("updates existing workspace config when represented as nested inline tables", async () => {
+    tree.write(
+      "pyproject.toml",
+      [
+        "[project]",
+        'name = "workspace"',
+        'version = "0.1.0"',
+        "",
+        "[tool]",
+        'uv = { workspace = { members = ["apps/*"] } }',
+        "",
+      ].join("\n"),
+    );
+
+    await projectGenerator(tree, {
+      name: "inline-member",
+      workspaceMember: true,
+      skipFormat: true,
+    });
+
+    const pyproject = tree.read("pyproject.toml", "utf-8") ?? "";
+    const workspaceHeaders = pyproject.match(/\[tool\.uv\.workspace\]/g) ?? [];
+
+    expect(pyproject).toContain(
+      'members = [ "apps/*", "packages/py/inline-member" ]',
+    );
+    expect(workspaceHeaders).toHaveLength(1);
+  });
+
   it("does not mutate root pyproject when workspace membership is disabled", async () => {
     tree.write(
       "pyproject.toml",

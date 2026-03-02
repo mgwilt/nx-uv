@@ -125,60 +125,58 @@ function ensureWorkspaceMembership(tree: Tree, projectRoot: string): void {
   }
 
   const current = tree.read(rootPyprojectPath, "utf-8") ?? "";
+  const parsed = parseTomlDocument(current);
 
-  if (current.includes("[tool.uv.workspace]")) {
-    const parsed = parseTomlDocument(current);
-    if (!isRecord(parsed)) {
-      logger.warn(
-        `Unable to parse ${rootPyprojectPath}. Skipping workspace membership update for ${projectRoot}.`,
+  if (isRecord(parsed)) {
+    const workspaceTable = readWorkspaceTable(parsed);
+
+    if (workspaceTable) {
+      const members = toStringArray(workspaceTable["members"]);
+      const exclude = toStringArray(workspaceTable["exclude"]);
+
+      const isIncluded = members.some((pattern) =>
+        matchesWorkspacePattern(projectRoot, pattern),
+      );
+      const blockingExclude = exclude.some((pattern) =>
+        matchesWorkspacePattern(projectRoot, pattern),
+      );
+
+      let changed = false;
+
+      if ((!isIncluded || blockingExclude) && !members.includes(projectRoot)) {
+        members.push(projectRoot);
+        changed = true;
+      }
+
+      const filteredExclude = exclude.filter(
+        (pattern) => !matchesWorkspacePattern(projectRoot, pattern),
+      );
+
+      if (filteredExclude.length !== exclude.length) {
+        changed = true;
+      }
+
+      if (!changed) {
+        return;
+      }
+
+      workspaceTable["members"] = members;
+
+      if (filteredExclude.length > 0) {
+        workspaceTable["exclude"] = filteredExclude;
+      } else {
+        delete workspaceTable["exclude"];
+      }
+
+      tree.write(
+        rootPyprojectPath,
+        `${stringifyToml(parsed as Parameters<typeof stringifyToml>[0]).trimEnd()}\n`,
       );
       return;
     }
-
-    const toolTable = ensureChildTable(parsed, "tool");
-    const uvTable = ensureChildTable(toolTable, "uv");
-    const workspaceTable = ensureChildTable(uvTable, "workspace");
-
-    const members = toStringArray(workspaceTable["members"]);
-    const exclude = toStringArray(workspaceTable["exclude"]);
-
-    const isIncluded = members.some((pattern) =>
-      matchesWorkspacePattern(projectRoot, pattern),
-    );
-    const blockingExclude = exclude.some((pattern) =>
-      matchesWorkspacePattern(projectRoot, pattern),
-    );
-
-    let changed = false;
-
-    if ((!isIncluded || blockingExclude) && !members.includes(projectRoot)) {
-      members.push(projectRoot);
-      changed = true;
-    }
-
-    const filteredExclude = exclude.filter(
-      (pattern) => !matchesWorkspacePattern(projectRoot, pattern),
-    );
-
-    if (filteredExclude.length !== exclude.length) {
-      changed = true;
-    }
-
-    if (!changed) {
-      return;
-    }
-
-    workspaceTable["members"] = members;
-
-    if (filteredExclude.length > 0) {
-      workspaceTable["exclude"] = filteredExclude;
-    } else {
-      delete workspaceTable["exclude"];
-    }
-
-    tree.write(
-      rootPyprojectPath,
-      `${stringifyToml(parsed as Parameters<typeof stringifyToml>[0]).trimEnd()}\n`,
+  } else if (current.includes("[tool.uv.workspace]")) {
+    logger.warn(
+      `Unable to parse ${rootPyprojectPath}. Skipping workspace membership update for ${projectRoot}.`,
     );
     return;
   }
@@ -193,7 +191,7 @@ function ensureWorkspaceMembership(tree: Tree, projectRoot: string): void {
   tree.write(rootPyprojectPath, `${current.trimEnd()}${workspaceTable}`);
 }
 
-function parseTomlDocument(content: string): unknown {
+function parseTomlDocument(content: string): unknown | undefined {
   try {
     return parseToml(content);
   } catch {
@@ -205,18 +203,21 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null;
 }
 
-function ensureChildTable(
-  parent: Record<string, unknown>,
-  key: string,
-): Record<string, unknown> {
-  const current = parent[key];
-  if (isRecord(current)) {
-    return current;
+function readWorkspaceTable(
+  parsedToml: Record<string, unknown>,
+): Record<string, unknown> | undefined {
+  const tool = parsedToml["tool"];
+  if (!isRecord(tool)) {
+    return undefined;
   }
 
-  const created: Record<string, unknown> = {};
-  parent[key] = created;
-  return created;
+  const uv = tool["uv"];
+  if (!isRecord(uv)) {
+    return undefined;
+  }
+
+  const workspace = uv["workspace"];
+  return isRecord(workspace) ? workspace : undefined;
 }
 
 function toStringArray(value: unknown): string[] {
