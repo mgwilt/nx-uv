@@ -207,6 +207,41 @@ describe("createNodesV2", () => {
     });
   });
 
+  it("falls back to standard inference when preset input is invalid", async () => {
+    const workspaceRoot = createWorkspace({
+      "packages/invalid-preset/pyproject.toml": `[project]\nname = "Invalid Preset"\n`,
+    });
+
+    const [, createNodes] = createNodesV2;
+    const results = await createNodes(
+      ["packages/invalid-preset/pyproject.toml"],
+      {
+        targetPrefix: "uv:",
+        inferencePreset: "unexpected" as unknown as "standard",
+      },
+      {
+        workspaceRoot,
+        nxJsonConfiguration: {},
+      },
+    );
+
+    const [, result] = results[0];
+    const inferred = result.projects?.["packages/invalid-preset"];
+
+    expect(inferred?.targets).toEqual(
+      expect.objectContaining({
+        "uv:sync": expect.any(Object),
+        "uv:run": expect.any(Object),
+        "uv:lock": expect.any(Object),
+        "uv:test": expect.any(Object),
+        "uv:lint": expect.any(Object),
+        "uv:build": expect.any(Object),
+        "uv:tree": expect.any(Object),
+      }),
+    );
+    expect(inferred?.targets?.["uv:publish"]).toBeUndefined();
+  });
+
   it("falls back to directory-derived project names for malformed toml", async () => {
     const workspaceRoot = createWorkspace({
       "apps/bad/pyproject.toml": `[project\nname = "oops"\n`,

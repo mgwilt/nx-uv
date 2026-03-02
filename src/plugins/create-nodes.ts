@@ -82,7 +82,7 @@ function buildTargets(
   options: NxUvPluginOptions,
 ) {
   const targetPrefix = options.targetPrefix ?? "uv:";
-  const preset = options.inferencePreset ?? "standard";
+  const preset = resolveInferencePreset(options.inferencePreset);
   const inferredTargets = options.inferredTargets ?? {};
 
   const baseTargets: Record<
@@ -184,6 +184,16 @@ function buildTargets(
   }
 
   return baseTargets;
+}
+
+function resolveInferencePreset(
+  preset: NxUvPluginOptions["inferencePreset"] | string | undefined,
+): "minimal" | "standard" | "full" {
+  if (preset === "minimal" || preset === "standard" || preset === "full") {
+    return preset;
+  }
+
+  return "standard";
 }
 
 function resolveInferredTarget(
