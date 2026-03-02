@@ -11,9 +11,11 @@ import { dirname, join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 
 import {
+  calculateCoverageMetricPercent,
   calculateCoveragePercent,
+  createCoverageBadgeArtifacts,
   createCoverageBadgePayload,
-  generateCoverageBadge,
+  generateCoverageBadges,
   loadCoverageSummary,
   parseCoverageBadgeCliArgs,
   runCoverageBadgeCli,
@@ -60,17 +62,19 @@ describe("coverage badge helpers", () => {
     expect(summary.total.branches.pct).toBe(94.9);
   });
 
-  it("calculates coverage using the worst top-level metric", () => {
-    const coveragePercent = calculateCoveragePercent({
+  it("calculates per-metric and floor percentages", () => {
+    const summary = {
       total: {
         lines: { pct: 98.6 },
         functions: { pct: 97.2 },
         statements: { pct: 96.3 },
         branches: { pct: 90.34 },
       },
-    });
+    };
 
-    expect(coveragePercent).toBe(90.3);
+    expect(calculateCoverageMetricPercent(summary, "lines")).toBe(98.6);
+    expect(calculateCoverageMetricPercent(summary, "branches")).toBe(90.3);
+    expect(calculateCoveragePercent(summary)).toBe(90.3);
   });
 
   it("maps coverage percentages to shields colors", () => {
@@ -82,9 +86,29 @@ describe("coverage badge helpers", () => {
     expect(selectCoverageColor(59.9)).toBe("red");
   });
 
-  it("creates badge payload and writes badge json output", () => {
+  it("creates coverage artifacts with metric and floor payloads", () => {
+    const artifacts = createCoverageBadgeArtifacts({
+      total: {
+        lines: { pct: 99.1 },
+        functions: { pct: 96.7 },
+        statements: { pct: 97.4 },
+        branches: { pct: 94.12 },
+      },
+    });
+
+    expect(artifacts).toHaveLength(5);
+    expect(
+      artifacts.find((artifact) => artifact.fileName === "coverage-floor.json"),
+    ).toEqual({
+      fileName: "coverage-floor.json",
+      payload: createCoverageBadgePayload(94.1, "coverage floor"),
+    });
+  });
+
+  it("writes metric badges, floor badge, and a legacy alias", () => {
     const summaryPath = createTempPath("coverage/coverage-summary.json");
-    const outputPath = createTempPath(".github/badges/coverage.json");
+    const outputDir = createTempPath(".github/badges");
+    const legacyOutputPath = createTempPath(".github/badges/coverage.json");
 
     writeJsonFile(summaryPath, {
       total: {
@@ -95,18 +119,59 @@ describe("coverage badge helpers", () => {
       },
     });
 
-    const payload = generateCoverageBadge(summaryPath, outputPath);
-    const onDisk = JSON.parse(readFileSync(outputPath, "utf-8")) as {
+    const artifacts = generateCoverageBadges(
+      summaryPath,
+      outputDir,
+      legacyOutputPath,
+    );
+
+    expect(artifacts).toHaveLength(5);
+
+    const expectedFiles = [
+      "coverage-lines.json",
+      "coverage-functions.json",
+      "coverage-statements.json",
+      "coverage-branches.json",
+      "coverage-floor.json",
+      "coverage.json",
+    ];
+
+    for (const fileName of expectedFiles) {
+      const filePath =
+        fileName === "coverage.json"
+          ? legacyOutputPath
+          : join(outputDir, fileName);
+      const onDisk = JSON.parse(readFileSync(filePath, "utf-8")) as {
+        label: string;
+        message: string;
+        color: string;
+        schemaVersion: number;
+      };
+
+      expect(onDisk.schemaVersion).toBe(1);
+      expect(onDisk.message).toMatch(/^\d+\.\d%$/);
+      expect(typeof onDisk.label).toBe("string");
+      expect(typeof onDisk.color).toBe("string");
+    }
+
+    const floor = JSON.parse(
+      readFileSync(join(outputDir, "coverage-floor.json"), "utf-8"),
+    ) as {
+      label: string;
+      message: string;
+      color: string;
+      schemaVersion: number;
+    };
+    const legacy = JSON.parse(readFileSync(legacyOutputPath, "utf-8")) as {
       label: string;
       message: string;
       color: string;
       schemaVersion: number;
     };
 
-    expect(payload).toEqual(createCoverageBadgePayload(94.1));
-    expect(onDisk).toMatchObject({
-      schemaVersion: 1,
-      label: "coverage",
+    expect(legacy).toEqual(floor);
+    expect(floor).toMatchObject({
+      label: "coverage floor",
       message: "94.1%",
       color: "green",
     });
@@ -115,7 +180,23 @@ describe("coverage badge helpers", () => {
   it("parses default and explicit cli args", () => {
     expect(parseCoverageBadgeCliArgs([])).toEqual({
       summaryPath: "coverage/coverage-summary.json",
-      outputPath: ".github/badges/coverage.json",
+      outputDir: ".github/badges",
+      legacyOutputPath: ".github/badges/coverage.json",
+    });
+
+    expect(
+      parseCoverageBadgeCliArgs([
+        "--summary",
+        "tmp/summary.json",
+        "--output-dir",
+        "tmp/badges",
+        "--legacy-output",
+        "tmp/custom-coverage.json",
+      ]),
+    ).toEqual({
+      summaryPath: "tmp/summary.json",
+      outputDir: "tmp/badges",
+      legacyOutputPath: "tmp/custom-coverage.json",
     });
 
     expect(
@@ -123,11 +204,12 @@ describe("coverage badge helpers", () => {
         "--summary",
         "tmp/summary.json",
         "--output",
-        "tmp/coverage.json",
+        "tmp/legacy/coverage.json",
       ]),
     ).toEqual({
       summaryPath: "tmp/summary.json",
-      outputPath: "tmp/coverage.json",
+      outputDir: "tmp/legacy",
+      legacyOutputPath: "tmp/legacy/coverage.json",
     });
   });
 
@@ -148,14 +230,18 @@ describe("coverage badge helpers", () => {
     expect(() => parseCoverageBadgeCliArgs(["--summary"])).toThrow(
       "Missing value for --summary",
     );
-    expect(() => parseCoverageBadgeCliArgs(["--output"])).toThrow(
-      "Missing value for --output",
+    expect(() => parseCoverageBadgeCliArgs(["--output-dir"])).toThrow(
+      "Missing value for --output-dir",
+    );
+    expect(() => parseCoverageBadgeCliArgs(["--legacy-output"])).toThrow(
+      "Missing value for --legacy-output",
     );
   });
 
-  it("runs the cli helper and returns generated payload", () => {
+  it("runs the cli helper and returns generated artifacts", () => {
     const summaryPath = createTempPath("coverage/coverage-summary.json");
-    const outputPath = createTempPath(".github/badges/coverage.json");
+    const outputDir = createTempPath(".github/badges");
+    const legacyOutputPath = createTempPath(".github/badges/coverage.json");
 
     writeJsonFile(summaryPath, {
       total: {
@@ -166,16 +252,23 @@ describe("coverage badge helpers", () => {
       },
     });
 
-    const payload = runCoverageBadgeCli([
+    const artifacts = runCoverageBadgeCli([
       "--summary",
       summaryPath,
-      "--output",
-      outputPath,
+      "--output-dir",
+      outputDir,
+      "--legacy-output",
+      legacyOutputPath,
     ]);
 
-    expect(payload).toEqual({
+    expect(artifacts).toHaveLength(5);
+
+    const floor = artifacts.find(
+      (artifact) => artifact.fileName === "coverage-floor.json",
+    );
+    expect(floor?.payload).toEqual({
       schemaVersion: 1,
-      label: "coverage",
+      label: "coverage floor",
       message: "92.0%",
       color: "green",
     });

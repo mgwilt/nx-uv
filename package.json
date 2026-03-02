@@ -1,6 +1,6 @@
 {
   "name": "@mgwilt/nx-uv",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "Nx plugin for uv workflows in Nx monorepos",
   "license": "MIT",
   "type": "commonjs",
@@ -31,8 +31,8 @@
     "llms:check": "node tools/check-llms.cjs",
     "hooks:install": "lefthook install",
     "prepare": "lefthook install",
-    "release:version": "nx release version --preid beta",
-    "release:publish": "nx release publish --tag beta",
+    "release:version": "nx release version",
+    "release:publish": "nx release publish --tag latest",
     "commitlint": "commitlint --from=HEAD~1 --to=HEAD"
   },
   "repository": {

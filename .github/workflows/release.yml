@@ -10,7 +10,7 @@ on:
         options:
           - beta
           - stable
-        default: beta
+        default: stable
       version:
         description: Optional exact version (for example 0.2.0)
         required: false
@@ -52,6 +52,25 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
+      - name: Enforce first stable v1 release input
+        if: ${{ inputs.channel == 'stable' }}
+        run: |
+          set -euo pipefail
+
+          if git tag --list 'v1.*' | grep -q .; then
+            echo "Existing v1 tag detected; first-v1 guard is not required."
+            exit 0
+          fi
+
+          if [ "${{ inputs.version }}" != "1.0.0" ]; then
+            echo "First stable release must be run with version=1.0.0."
+            echo "Current release resolver is tag-based and would otherwise derive a pre-v1 bump."
+            echo "Re-run this workflow with channel=stable and version=1.0.0."
+            exit 1
+          fi
+
+          echo "First stable v1 release guard satisfied."
+
       - name: Version release from conventional commits
         run: |
           if [ -n "${{ inputs.version }}" ]; then
@@ -73,14 +92,14 @@ jobs:
             echo "npm_tag=latest" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Publish prerelease to npm (Trusted Publishing)
+      - name: Publish release to npm (Trusted Publishing)
         if: ${{ env.NPM_ACCESS_TOKEN == '' }}
         run: pnpm nx release publish --tag ${{ steps.release_tag.outputs.npm_tag }}
         env:
           NPM_CONFIG_PROVENANCE: true
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Publish prerelease to npm (Token Fallback)
+      - name: Publish release to npm (Token Fallback)
         if: ${{ env.NPM_ACCESS_TOKEN != '' }}
         run: pnpm nx release publish --tag ${{ steps.release_tag.outputs.npm_tag }}
         env:
@@ -95,7 +114,7 @@ jobs:
           registry-url: https://npm.pkg.github.com/
           scope: "@mgwilt"
 
-      - name: Publish prerelease to GitHub Packages
+      - name: Publish release to GitHub Packages
         run: pnpm nx release publish --registry=https://npm.pkg.github.com --tag ${{ steps.release_tag.outputs.npm_tag }}
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

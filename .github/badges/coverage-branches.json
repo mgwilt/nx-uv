@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "label": "coverage floor",
+  "label": "coverage branches",
   "message": "90.7%",
   "color": "green"
 }

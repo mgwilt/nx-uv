@@ -92,7 +92,7 @@ Coverage thresholds enforced in `vitest.coverage.config.mts`:
 - `llms.yml`
   - Validates `llms.txt` and `llms-full.txt` drift for docs/automation-related PRs/pushes
 - `release.yml`
-  - Manual prerelease flow (`beta` channel)
+  - Manual channel-aware release flow (stable default, optional `beta` channel)
 - `commitlint.yml`
   - [Conventional Commits](https://www.conventionalcommits.org/) message validation for PRs
 
@@ -101,27 +101,32 @@ Additional references:
 - Toolchain policy: [`toolchain-matrix.md`](toolchain-matrix.md)
 - Bootstrap incident runbook: [`runbooks/gate-bootstrap-failure.md`](runbooks/gate-bootstrap-failure.md)
 
-## Coverage badge pipeline
+## Coverage badges pipeline
 
 1. `test:coverage` writes `coverage/coverage-summary.json`.
-2. `coverage:badge` generates `.github/badges/coverage.json`.
+2. `coverage:badge` generates:
+   - `.github/badges/coverage-lines.json`
+   - `.github/badges/coverage-functions.json`
+   - `.github/badges/coverage-statements.json`
+   - `.github/badges/coverage-branches.json`
+   - `.github/badges/coverage-floor.json`
+   - `.github/badges/coverage.json` (legacy alias to floor)
 3. CI publishes badge content to the `badges` branch.
-4. README coverage badge reads from:
-   - `https://raw.githubusercontent.com/mgwilt/nx-uv/badges/.github/badges/coverage.json`
+4. README coverage badges read from:
+   - `https://raw.githubusercontent.com/mgwilt/nx-uv/badges/.github/badges/*.json`
 
-## Release process (pre-v1)
+## Release process
 
-The project currently ships prereleases to [npm](https://www.npmjs.com/).
+The project ships stable releases to [npm](https://www.npmjs.com/).
 
-- Version bump (preid):
+- Version bump:
   - `pnpm release:version`
-- Publish with prerelease dist-tag:
+- Publish with stable dist-tag:
   - `pnpm release:publish`
 
 Current release policy:
 
-- [npm](https://www.npmjs.com/) dist-tag: `beta`
-- Stable `latest` should not be the default path until v1 planning changes.
+- [npm](https://www.npmjs.com/) dist-tag: `latest`
 
 ## llms automation
 

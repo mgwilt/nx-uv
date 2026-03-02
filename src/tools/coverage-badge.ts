@@ -1,6 +1,31 @@
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 
+export const COVERAGE_METRIC_SPECS = [
+  {
+    key: "lines",
+    label: "coverage lines",
+    fileName: "coverage-lines.json",
+  },
+  {
+    key: "functions",
+    label: "coverage functions",
+    fileName: "coverage-functions.json",
+  },
+  {
+    key: "statements",
+    label: "coverage statements",
+    fileName: "coverage-statements.json",
+  },
+  {
+    key: "branches",
+    label: "coverage branches",
+    fileName: "coverage-branches.json",
+  },
+] as const;
+
+export type CoverageMetricKey = (typeof COVERAGE_METRIC_SPECS)[number]["key"];
+
 export interface CoverageMetricSummary {
   pct: number;
 }
@@ -21,9 +46,15 @@ export interface ShieldsBadgePayload {
   color: string;
 }
 
+export interface CoverageBadgeArtifact {
+  fileName: string;
+  payload: ShieldsBadgePayload;
+}
+
 export interface CoverageBadgeCliOptions {
   summaryPath: string;
-  outputPath: string;
+  outputDir: string;
+  legacyOutputPath: string;
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -107,10 +138,11 @@ export function selectCoverageColor(coveragePercent: number): string {
 
 export function createCoverageBadgePayload(
   coveragePercent: number,
+  label = "coverage",
 ): ShieldsBadgePayload {
   return {
     schemaVersion: 1,
-    label: "coverage",
+    label,
     message: `${coveragePercent.toFixed(1)}%`,
     color: selectCoverageColor(coveragePercent),
   };
@@ -124,24 +156,81 @@ export function writeCoverageBadge(
   writeFileSync(outputPath, `${JSON.stringify(payload, null, 2)}\n`, "utf-8");
 }
 
-export function generateCoverageBadge(
+export function calculateCoverageMetricPercent(
+  summary: CoverageSummary,
+  metric: CoverageMetricKey,
+): number {
+  return Math.round(summary.total[metric].pct * 10) / 10;
+}
+
+export function createCoverageBadgeArtifacts(
+  summary: CoverageSummary,
+): CoverageBadgeArtifact[] {
+  const metricArtifacts: CoverageBadgeArtifact[] = COVERAGE_METRIC_SPECS.map(
+    (spec) => {
+      const coveragePercent = calculateCoverageMetricPercent(summary, spec.key);
+      return {
+        fileName: spec.fileName,
+        payload: createCoverageBadgePayload(coveragePercent, spec.label),
+      };
+    },
+  );
+
+  const floorPercent = calculateCoveragePercent(summary);
+  const floorPayload = createCoverageBadgePayload(
+    floorPercent,
+    "coverage floor",
+  );
+
+  return [
+    ...metricArtifacts,
+    {
+      fileName: "coverage-floor.json",
+      payload: floorPayload,
+    },
+  ];
+}
+
+export function writeCoverageBadgeArtifacts(
+  outputDir: string,
+  artifacts: CoverageBadgeArtifact[],
+  legacyOutputPath: string,
+): void {
+  const floorArtifact = artifacts.find(
+    (artifact) => artifact.fileName === "coverage-floor.json",
+  );
+
+  if (!floorArtifact) {
+    throw new Error("Coverage floor artifact was not generated.");
+  }
+
+  for (const artifact of artifacts) {
+    writeCoverageBadge(resolve(outputDir, artifact.fileName), artifact.payload);
+  }
+
+  // Keep a compatibility alias for existing references.
+  writeCoverageBadge(legacyOutputPath, floorArtifact.payload);
+}
+
+export function generateCoverageBadges(
   summaryPath: string,
-  outputPath: string,
-): ShieldsBadgePayload {
+  outputDir: string,
+  legacyOutputPath: string,
+): CoverageBadgeArtifact[] {
   const summary = loadCoverageSummary(summaryPath);
-  const coveragePercent = calculateCoveragePercent(summary);
-  const payload = createCoverageBadgePayload(coveragePercent);
+  const artifacts = createCoverageBadgeArtifacts(summary);
+  writeCoverageBadgeArtifacts(outputDir, artifacts, legacyOutputPath);
 
-  writeCoverageBadge(outputPath, payload);
-
-  return payload;
+  return artifacts;
 }
 
 export function parseCoverageBadgeCliArgs(
   args: string[],
 ): CoverageBadgeCliOptions {
   let summaryPath = "coverage/coverage-summary.json";
-  let outputPath = ".github/badges/coverage.json";
+  let outputDir = ".github/badges";
+  let legacyOutputPath = ".github/badges/coverage.json";
+  let outputDirExplicitlySet = false;
 
   for (let index = 0; index < args.length; index += 1) {
     const arg = args[index];
@@ -156,11 +245,33 @@ export function parseCoverageBadgeCliArgs(
       continue;
     }
 
+    if (arg === "--output-dir") {
+      if (!next) {
+        throw new Error("Missing value for --output-dir");
+      }
+      outputDir = next;
+      outputDirExplicitlySet = true;
+      index += 1;
+      continue;
+    }
+
+    if (arg === "--legacy-output") {
+      if (!next) {
+        throw new Error(`Missing value for ${arg}`);
+      }
+      legacyOutputPath = next;
+      index += 1;
+      continue;
+    }
+
     if (arg === "--output") {
       if (!next) {
         throw new Error("Missing value for --output");
       }
-      outputPath = next;
+      legacyOutputPath = next;
+      if (!outputDirExplicitlySet) {
+        outputDir = dirname(next);
+      }
       index += 1;
       continue;
     }
@@ -170,21 +281,25 @@ export function parseCoverageBadgeCliArgs(
 
   return {
     summaryPath,
-    outputPath,
+    outputDir,
+    legacyOutputPath,
   };
 }
 
-export function runCoverageBadgeCli(args: string[]): ShieldsBadgePayload {
+export function runCoverageBadgeCli(args: string[]): CoverageBadgeArtifact[] {
   const options = parseCoverageBadgeCliArgs(args);
-  const payload = generateCoverageBadge(
+  const artifacts = generateCoverageBadges(
     resolve(options.summaryPath),
-    resolve(options.outputPath),
+    resolve(options.outputDir),
+    resolve(options.legacyOutputPath),
   );
 
-  // Keep output minimal so CI logs stay compact.
-  process.stdout.write(`coverage badge: ${payload.message}\n`);
+  const summaryText = artifacts
+    .map((artifact) => `${artifact.fileName}=${artifact.payload.message}`)
+    .join(", ");
+  process.stdout.write(`coverage badges: ${summaryText}\n`);
 
-  return payload;
+  return artifacts;
 }
 
 /* c8 ignore start */

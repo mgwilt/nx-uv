@@ -2,9 +2,7 @@
   "title": "@mgwilt/nx-uv",
   "summary": "Nx plugin for uv workflows in Nx monorepos.",
   "baseUrl": "https://github.com/mgwilt/nx-uv/blob/main",
-  "notes": [
-    "The package is currently pre-v1 and published on the npm beta dist-tag."
-  ],
+  "notes": [],
   "sections": [
     {
       "name": "Getting Started",
@@ -38,7 +36,7 @@
         {
           "path": "docs/maintainers.md",
           "label": "Maintainer Guide",
-          "description": "Repository operations, quality gates, CI workflows, badges, hooks, and prerelease process."
+          "description": "Repository operations, quality gates, CI workflows, badges, hooks, and release process."
         }
       ]
     }

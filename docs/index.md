@@ -6,7 +6,7 @@
 
 ## For maintainers
 
-- Repository operations, quality gates, hooks, CI, coverage badge publishing, and prerelease process:
+- Repository operations, quality gates, hooks, CI, coverage badges publishing, and release process:
   - [`maintainers.md`](maintainers.md)
 - Supported Node/pnpm/Nx validation matrix for quality gates:
   - [`toolchain-matrix.md`](toolchain-matrix.md)
