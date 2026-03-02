@@ -73,7 +73,23 @@ jobs:
 
       - name: Version release from conventional commits
         run: |
+          set -euo pipefail
+          git fetch --tags --force
+
           if [ -n "${{ inputs.version }}" ]; then
+            TAG="v${{ inputs.version }}"
+            if git rev-parse -q --verify "refs/tags/$TAG" > /dev/null; then
+              CURRENT_VERSION="$(node -p "require('./package.json').version")"
+              if [ "$CURRENT_VERSION" != "${{ inputs.version }}" ]; then
+                echo "Requested version tag $TAG already exists, but package.json is $CURRENT_VERSION."
+                echo "Refusing to publish mismatched sources for an existing exact tag."
+                exit 1
+              fi
+
+              echo "Requested version tag $TAG already exists; skipping versioning."
+              exit 0
+            fi
+
             pnpm nx release version "${{ inputs.version }}" --git-commit --git-tag --git-push
           elif [ "${{ inputs.channel }}" = "beta" ]; then
             pnpm nx release version --preid beta --git-commit --git-tag --git-push
