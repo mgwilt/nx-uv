@@ -130,7 +130,7 @@ describe("project executor e2e", () => {
     expect(logged.testFlag).toBe("enabled");
   });
 
-  it("fails when uv version is unsupported", async () => {
+  it("continues when uv version is outside tested range", async () => {
     const workspaceRoot = mkdtempSync(join(tmpdir(), "nx-uv-e2e-"));
     tempRoots.push(workspaceRoot);
 
@@ -142,7 +142,10 @@ describe("project executor e2e", () => {
     const uvPath = join(binRoot, "uv");
     writeFakeUvBinary(uvPath);
 
+    const logFile = join(workspaceRoot, "uv-command-log.json");
+
     process.env.PATH = `${binRoot}:${originalPath}`;
+    process.env.UV_FAKE_LOG_FILE = logFile;
     process.env.UV_FAKE_VERSION = "uv 1.0.0\n";
 
     const result = await executor(
@@ -152,6 +155,13 @@ describe("project executor e2e", () => {
       createContext(workspaceRoot),
     );
 
-    expect(result.success).toBe(false);
+    const logged = JSON.parse(readFileSync(logFile, "utf-8")) as {
+      cwd: string;
+      args: string[];
+    };
+
+    expect(result.success).toBe(true);
+    expect(logged.cwd).toBe(packageRoot);
+    expect(logged.args).toEqual(["sync"]);
   });
 });

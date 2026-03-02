@@ -1,9 +1,16 @@
 stages:
-  - test
+  - quality
 
-test:uv:
-  image: ghcr.io/astral-sh/uv:python3.12-bookworm-slim
-  stage: test
+quality:nx:
+  image: node:20-bookworm-slim
+  stage: quality
+  variables:
+    NX_DAEMON: 'false'
+  before_script:
+    - curl -LsSf https://astral.sh/uv/install.sh | sh
+    - export PATH="$HOME/.local/bin:$PATH"
+    - corepack enable
+    - corepack prepare pnpm@10 --activate
+    - pnpm install --frozen-lockfile
   script:
-    - uv sync --frozen
-    - uv run -- pytest -q
+    - pnpm nx run-many -t test,lint,build --all --outputStyle=static

@@ -90,24 +90,37 @@ describe("runUvCommand", () => {
     spawnSyncMock.mockReset();
   });
 
-  it("fails when uv version is unsupported", () => {
-    spawnSyncMock.mockReturnValue(uvVersionResult("1.0.0"));
+  it("warns and continues when uv version is outside tested range", () => {
+    spawnSyncMock.mockImplementation((_command: string, args: string[]) => {
+      if (args[0] === "--version") {
+        return uvVersionResult("1.0.0");
+      }
 
-    const result = runUvCommand(["sync"], {}, baseContext);
-
-    expect(result.success).toBe(false);
-    expect(spawnSyncMock).toHaveBeenCalledTimes(1);
-  });
-
-  it("fails when uv version output cannot be parsed", () => {
-    spawnSyncMock.mockReturnValue({
-      ...uvVersionResult("0.9.29"),
-      stdout: "unknown output\n",
+      return uvCommandResult();
     });
 
     const result = runUvCommand(["sync"], {}, baseContext);
 
-    expect(result.success).toBe(false);
+    expect(result.success).toBe(true);
+    expect(spawnSyncMock).toHaveBeenCalledTimes(2);
+  });
+
+  it("warns and continues when uv version output cannot be parsed", () => {
+    spawnSyncMock.mockImplementation((_command: string, args: string[]) => {
+      if (args[0] === "--version") {
+        return {
+          ...uvVersionResult("0.9.29"),
+          stdout: "unknown output\n",
+        };
+      }
+
+      return uvCommandResult();
+    });
+
+    const result = runUvCommand(["sync"], {}, baseContext);
+
+    expect(result.success).toBe(true);
+    expect(spawnSyncMock).toHaveBeenCalledTimes(2);
   });
 
   it("fails when version check command exits non-zero", () => {

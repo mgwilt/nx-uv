@@ -3,11 +3,13 @@ import * as childProcess from "child_process";
 import * as path from "path";
 import { UvBaseExecutorSchema } from "./options";
 
-const SUPPORTED_UV_VERSION = /^0\.9\./;
+const TESTED_UV_VERSION = /^0\.9\./;
 
 type UvCommandResult = { success: boolean };
 
-type VersionCheckResult = { ok: true } | { ok: false; message: string };
+type VersionCheckResult =
+  | { ok: true; warning?: string }
+  | { ok: false; message: string };
 
 export function resolveWorkingDirectory(
   options: UvBaseExecutorSchema,
@@ -41,6 +43,10 @@ export function runUvCommand(
     if (!versionCheck.ok) {
       logger.error(versionCheck.message);
       return { success: false };
+    }
+
+    if (versionCheck.warning) {
+      logger.warn(versionCheck.warning);
     }
   }
 
@@ -183,16 +189,13 @@ function assertUvVersion(cwd: string): VersionCheckResult {
   const version = parseUvVersion(result.stdout?.toString() ?? "");
 
   if (!version) {
-    return {
-      ok: false,
-      message: 'Unable to parse uv version output. Expected: "uv 0.9.x".',
-    };
+    return { ok: true, warning: "Unable to parse uv version output." };
   }
 
-  if (!SUPPORTED_UV_VERSION.test(version)) {
+  if (!TESTED_UV_VERSION.test(version)) {
     return {
-      ok: false,
-      message: `Unsupported uv version ${version}. This plugin targets uv 0.9.x.`,
+      ok: true,
+      warning: `uv version ${version} is outside the tested range (0.9.x). Proceeding with command execution.`,
     };
   }
 

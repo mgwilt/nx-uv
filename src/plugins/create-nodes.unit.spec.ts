@@ -168,6 +168,103 @@ describe("createNodesV2", () => {
     );
   });
 
+  it("supports inferred target override and disablement via plugin options", async () => {
+    const workspaceRoot = createWorkspace({
+      "packages/custom/pyproject.toml": `[project]\nname = "Custom"\n`,
+    });
+
+    const [, createNodes] = createNodesV2;
+    const results = await createNodes(
+      ["packages/custom/pyproject.toml"],
+      {
+        targetPrefix: "uv:",
+        inferencePreset: "standard",
+        inferredTargets: {
+          test: false,
+          lint: {
+            command: "run",
+            commandArgs: ["--", "ruff", "check", "src"],
+          },
+        },
+      },
+      {
+        workspaceRoot,
+        nxJsonConfiguration: {},
+      },
+    );
+
+    const [, result] = results[0];
+    const inferred = result.projects?.["packages/custom"];
+
+    expect(inferred?.targets?.["uv:test"]).toBeUndefined();
+    expect(inferred?.targets?.["uv:lint"]).toEqual({
+      executor: "@mgwilt/nx-uv:project",
+      options: {
+        cwd: "packages/custom",
+        command: "run",
+        commandArgs: ["--", "ruff", "check", "src"],
+      },
+    });
+  });
+
+  it("falls back to standard inference when preset input is invalid", async () => {
+    const workspaceRoot = createWorkspace({
+      "packages/invalid-preset/pyproject.toml": `[project]\nname = "Invalid Preset"\n`,
+    });
+
+    const [, createNodes] = createNodesV2;
+    const results = await createNodes(
+      ["packages/invalid-preset/pyproject.toml"],
+      {
+        targetPrefix: "uv:",
+        inferencePreset: "unexpected" as unknown as "standard",
+      },
+      {
+        workspaceRoot,
+        nxJsonConfiguration: {},
+      },
+    );
+
+    const [, result] = results[0];
+    const inferred = result.projects?.["packages/invalid-preset"];
+
+    expect(inferred?.targets).toEqual(
+      expect.objectContaining({
+        "uv:sync": expect.any(Object),
+        "uv:run": expect.any(Object),
+        "uv:lock": expect.any(Object),
+        "uv:test": expect.any(Object),
+        "uv:lint": expect.any(Object),
+        "uv:build": expect.any(Object),
+        "uv:tree": expect.any(Object),
+      }),
+    );
+    expect(inferred?.targets?.["uv:publish"]).toBeUndefined();
+  });
+
+  it("falls back to directory-derived project names for malformed toml", async () => {
+    const workspaceRoot = createWorkspace({
+      "apps/bad/pyproject.toml": `[project\nname = "oops"\n`,
+    });
+
+    const [, createNodes] = createNodesV2;
+    const results = await createNodes(["apps/bad/pyproject.toml"], undefined, {
+      workspaceRoot,
+      nxJsonConfiguration: {},
+    });
+
+    const [, result] = results[0];
+    const inferred = result.projects?.["apps/bad"];
+
+    expect(inferred?.name).toBe("bad");
+    expect(inferred?.targets).toEqual(
+      expect.objectContaining({
+        "uv:sync": expect.any(Object),
+        "uv:run": expect.any(Object),
+      }),
+    );
+  });
+
   it("does not add global targets when workspace root is not inferred or workspace table is missing", async () => {
     const workspaceRoot = createWorkspace({
       "apps/service/pyproject.toml": `[project]\nname = "Service"\n`,

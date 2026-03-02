@@ -118,7 +118,7 @@ At this point you have a working monorepo with:
 
 - Root `pyproject.toml` and [uv](https://docs.astral.sh/uv/) workspace members
 - A generated `api` [Python](https://www.python.org/) project under `packages/py/api`
-- Generated [FastAPI](https://fastapi.tiangolo.com/) starter files and a [GitHub Actions](https://github.com/features/actions) uv workflow template
+- Generated [FastAPI](https://fastapi.tiangolo.com/) starter files and a [GitHub Actions](https://github.com/features/actions) Nx-first CI template
 - [Nx](https://nx.dev/) targets that run uv commands consistently in CI/local dev
 
 ## Quick start (existing workspace)
@@ -164,6 +164,33 @@ pnpm nx run api:build
 
 If your repo already has `pyproject.toml` files, the plugin can infer targets (for example `uv:sync`, `uv:run`, `uv:test`) based on your configured `targetPrefix` and inference preset.
 
+### Customizing inferred targets
+
+You can disable or override inferred targets in plugin options:
+
+```json
+{
+  "plugins": [
+    {
+      "plugin": "@mgwilt/nx-uv",
+      "options": {
+        "targetPrefix": "uv:",
+        "inferencePreset": "standard",
+        "inferredTargets": {
+          "test": false,
+          "lint": {
+            "command": "run",
+            "commandArgs": ["--", "ruff", "check", "src"]
+          }
+        }
+      }
+    }
+  ]
+}
+```
+
+Supported inferred target keys are: `sync`, `run`, `lock`, `test`, `lint`, `build`, `tree`, `export`, `format`, `venv`, `publish`.
+
 ## Integration templates
 
 Use integration templates to scaffold common [uv](https://docs.astral.sh/uv/) ecosystem files for CI, containers, dependency automation, and notebook workflows.
@@ -190,8 +217,8 @@ Use integration templates to scaffold common [uv](https://docs.astral.sh/uv/) ec
 | `dependency-bots`     | workspace root | `renovate.json`, `.github/dependabot.yml`           | Automated dependency update workflows with [Renovate](https://docs.renovatebot.com/) and [Dependabot](https://docs.github.com/en/code-security/dependabot) |
 | `docker`              | `baseDir`      | `<baseDir>/Dockerfile`                              | Containerizing a [uv](https://docs.astral.sh/uv/) project with [Docker](https://www.docker.com/)                                                           |
 | `fastapi`             | `baseDir`      | `<baseDir>/main.py`, `<baseDir>/Dockerfile.fastapi` | Bootstrapping a [FastAPI](https://fastapi.tiangolo.com/) service with [uv](https://docs.astral.sh/uv/)                                                     |
-| `github`              | workspace root | `.github/workflows/uv-ci.yml`                       | [GitHub Actions](https://github.com/features/actions) [uv](https://docs.astral.sh/uv/) CI starter pipeline                                                 |
-| `gitlab`              | workspace root | `.gitlab-ci.uv.yml`                                 | [GitLab CI/CD](https://docs.gitlab.com/ee/ci/) [uv](https://docs.astral.sh/uv/) starter pipeline                                                           |
+| `github`              | workspace root | `.github/workflows/uv-ci.yml`                       | [GitHub Actions](https://github.com/features/actions) Nx-first CI starter using `nx affected`                                                              |
+| `gitlab`              | workspace root | `.gitlab-ci.uv.yml`                                 | [GitLab CI/CD](https://docs.gitlab.com/ee/ci/) Nx-first CI starter using `nx run-many`                                                                     |
 | `jupyter`             | `baseDir`      | `<baseDir>/scripts/setup-jupyter-kernel.sh`         | Registering a [uv](https://docs.astral.sh/uv/)-managed [Jupyter](https://jupyter.org/) kernel                                                              |
 | `marimo`              | `baseDir`      | `<baseDir>/notebooks/example.marimo.py`             | Starting [marimo](https://marimo.io/) notebook workflows                                                                                                   |
 | `pre-commit`          | workspace root | `.pre-commit-config.yaml`                           | Local code quality hooks for [uv](https://docs.astral.sh/uv/) projects using [pre-commit](https://pre-commit.com/)                                         |
@@ -229,7 +256,8 @@ pnpm nx g @mgwilt/nx-uv:integration --template=pytorch --project=api
 
 ## Compatibility and versioning
 
-- Runtime [uv](https://docs.astral.sh/uv/) compatibility check targets `uv 0.9.x` by default.
+- Runtime [uv](https://docs.astral.sh/uv/) compatibility checks verify that `uv` is available and executable.
+- `uv 0.9.x` is currently the tested range. Other versions log a warning and continue.
 - This package is pre-v1 and published on the [npm](https://www.npmjs.com/) `beta` dist-tag.
 
 ## LLM context files

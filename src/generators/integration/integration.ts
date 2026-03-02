@@ -62,23 +62,40 @@ function filesForTemplate(
       return [
         {
           path: ".github/workflows/uv-ci.yml",
-          content: `name: uv-ci
+          content: `name: nx-uv-ci
 
 on:
   push:
   pull_request:
 
 jobs:
-  test:
+  quality:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Install uv
-        uses: astral-sh/setup-uv@v6
-      - name: Sync dependencies
-        run: uv sync --frozen
-      - name: Run tests
-        run: uv run -- pytest -q
+        with:
+          fetch-depth: 0
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+      - uses: astral-sh/setup-uv@v4
+        with:
+          enable-cache: false
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Derive base and head SHAs for Nx affected
+        uses: nrwl/nx-set-shas@v4
+      - name: Run affected quality targets
+        run: >-
+          pnpm nx affected
+          -t test,lint,build
+          --base="$NX_BASE"
+          --head="$NX_HEAD"
+          --outputStyle=static
 `,
         },
       ];
@@ -87,14 +104,21 @@ jobs:
         {
           path: ".gitlab-ci.uv.yml",
           content: `stages:
-  - test
+  - quality
 
-test:uv:
-  image: ghcr.io/astral-sh/uv:python3.12-bookworm-slim
-  stage: test
+quality:nx:
+  image: node:20-bookworm-slim
+  stage: quality
+  variables:
+    NX_DAEMON: "false"
+  before_script:
+    - curl -LsSf https://astral.sh/uv/install.sh | sh
+    - export PATH="$HOME/.local/bin:$PATH"
+    - corepack enable
+    - corepack prepare pnpm@10 --activate
+    - pnpm install --frozen-lockfile
   script:
-    - uv sync --frozen
-    - uv run -- pytest -q
+    - pnpm nx run-many -t test,lint,build --all --outputStyle=static
 `,
         },
       ];
@@ -116,10 +140,12 @@ CMD ["uv", "run", "--", "python", "-m", "main"]
         {
           path: inBase("Dockerfile.lambda"),
           content: `FROM public.ecr.aws/lambda/python:3.12
-COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
+COPY --from=ghcr.io/astral-sh/uv:0.10.7 /uv /uvx /bin/
 WORKDIR /var/task
 COPY pyproject.toml uv.lock* ./
-RUN uv pip install --system --no-emit-workspace --no-dev -r <(uv export --format requirements-txt)
+RUN uv export --format requirements-txt > requirements.txt \\
+  && uv pip install --system --no-emit-workspace --no-dev -r requirements.txt \\
+  && rm requirements.txt
 COPY . .
 CMD ["main.handler"]
 `,
