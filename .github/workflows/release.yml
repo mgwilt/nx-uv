@@ -129,6 +129,7 @@ jobs:
         run: npm publish --provenance --tag ${{ steps.release_tag.outputs.npm_tag }} --access public
         working-directory: dist
         env:
+          NODE_AUTH_TOKEN: ""
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Publish release to npm (Token Fallback)
