@@ -1,5 +1,5 @@
 FROM public.ecr.aws/lambda/python:3.12
-COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
+COPY --from=ghcr.io/astral-sh/uv:0.10.7 /uv /uvx /bin/
 WORKDIR /var/task
 COPY pyproject.toml uv.lock* ./
 RUN uv export --format requirements-txt > requirements.txt \

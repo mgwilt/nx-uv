@@ -21,6 +21,8 @@ describe("integration generator", () => {
     expect(workflow).toContain("pnpm nx affected");
     expect(workflow).toContain("-t test,lint,build");
     expect(workflow).toContain("nrwl/nx-set-shas@v4");
+    expect(workflow).toContain("astral-sh/setup-uv@v4");
+    expect(workflow).toContain("enable-cache: false");
     expect(workflow).not.toContain("uv sync --frozen");
     expect(workflow).not.toContain("uv run -- pytest -q");
   });
@@ -34,6 +36,10 @@ describe("integration generator", () => {
     const pipeline = tree.read(".gitlab-ci.uv.yml", "utf-8") ?? "";
 
     expect(pipeline).toContain("pnpm nx run-many -t test,lint,build --all");
+    expect(pipeline).toContain(
+      "curl -LsSf https://astral.sh/uv/install.sh | sh",
+    );
+    expect(pipeline).toContain('export PATH="$HOME/.local/bin:$PATH"');
     expect(pipeline).toContain("corepack prepare pnpm@10 --activate");
     expect(pipeline).not.toContain("uv sync --frozen");
     expect(pipeline).not.toContain("uv run -- pytest -q");
@@ -55,6 +61,8 @@ describe("integration generator", () => {
     expect(dockerfile).toContain(
       "uv pip install --system --no-emit-workspace --no-dev -r requirements.txt",
     );
+    expect(dockerfile).toContain("ghcr.io/astral-sh/uv:0.10.7");
+    expect(dockerfile).not.toContain("ghcr.io/astral-sh/uv:latest");
     expect(dockerfile).not.toContain("<(uv export --format requirements-txt)");
   });
 

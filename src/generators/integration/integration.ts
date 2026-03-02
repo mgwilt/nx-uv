@@ -82,6 +82,9 @@ jobs:
         with:
           node-version: 20
           cache: pnpm
+      - uses: astral-sh/setup-uv@v4
+        with:
+          enable-cache: false
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
       - name: Derive base and head SHAs for Nx affected
@@ -109,6 +112,8 @@ quality:nx:
   variables:
     NX_DAEMON: "false"
   before_script:
+    - curl -LsSf https://astral.sh/uv/install.sh | sh
+    - export PATH="$HOME/.local/bin:$PATH"
     - corepack enable
     - corepack prepare pnpm@10 --activate
     - pnpm install --frozen-lockfile
@@ -135,7 +140,7 @@ CMD ["uv", "run", "--", "python", "-m", "main"]
         {
           path: inBase("Dockerfile.lambda"),
           content: `FROM public.ecr.aws/lambda/python:3.12
-COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
+COPY --from=ghcr.io/astral-sh/uv:0.10.7 /uv /uvx /bin/
 WORKDIR /var/task
 COPY pyproject.toml uv.lock* ./
 RUN uv export --format requirements-txt > requirements.txt \\
