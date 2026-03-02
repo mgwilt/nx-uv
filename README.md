@@ -8,9 +8,9 @@
 
 ## Why this plugin exists
 
-For DevOps teams that are new to Nx, the key value is a consistent task graph, caching, and affected-based CI so large repos run faster and more predictably. The common gap is that Python workflows powered by [uv](https://docs.astral.sh/uv/) often stay in separate shell scripts and one-off CI jobs, so they miss the same build/test orchestration used by the rest of the monorepo.
+Nx provides a consistent task graph, caching, and affected-based CI so large repos run faster and more predictably. A common operational gap is that Python workflows powered by [uv](https://docs.astral.sh/uv/) often stay in separate shell scripts and one-off CI jobs, so they miss the same build/test orchestration used by the rest of the monorepo.
 
-`@mgwilt/nx-uv` connects that gap. It turns common `uv` workflows into Nx-native targets and adds inference/generators so teams can standardize command execution, reduce bespoke pipeline logic, and manage Python alongside other stacks in one CI model instead of maintaining a parallel toolchain path.
+`@mgwilt/nx-uv` bridges that gap by turning common `uv` workflows into Nx-native targets and adding inference/generators so teams can standardize command execution, reduce bespoke pipeline logic, and manage Python alongside other stacks in a single CI model instead of maintaining a parallel toolchain path.
 
 ## When to use this plugin
 
