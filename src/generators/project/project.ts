@@ -3,9 +3,12 @@ import {
   formatFiles,
   generateFiles,
   joinPathFragments,
+  logger,
   names,
   Tree,
 } from "@nx/devkit";
+import { parse as parseToml, stringify as stringifyToml } from "@iarna/toml";
+import { minimatch } from "minimatch";
 import * as path from "path";
 import { defaultUvTargets, parseTags, toModuleName } from "../shared";
 import { ProjectGeneratorSchema, PythonProjectType } from "./schema";
@@ -124,6 +127,59 @@ function ensureWorkspaceMembership(tree: Tree, projectRoot: string): void {
   const current = tree.read(rootPyprojectPath, "utf-8") ?? "";
 
   if (current.includes("[tool.uv.workspace]")) {
+    const parsed = parseTomlDocument(current);
+    if (!isRecord(parsed)) {
+      logger.warn(
+        `Unable to parse ${rootPyprojectPath}. Skipping workspace membership update for ${projectRoot}.`,
+      );
+      return;
+    }
+
+    const toolTable = ensureChildTable(parsed, "tool");
+    const uvTable = ensureChildTable(toolTable, "uv");
+    const workspaceTable = ensureChildTable(uvTable, "workspace");
+
+    const members = toStringArray(workspaceTable["members"]);
+    const exclude = toStringArray(workspaceTable["exclude"]);
+
+    const isIncluded = members.some((pattern) =>
+      matchesWorkspacePattern(projectRoot, pattern),
+    );
+    const blockingExclude = exclude.some((pattern) =>
+      matchesWorkspacePattern(projectRoot, pattern),
+    );
+
+    let changed = false;
+
+    if ((!isIncluded || blockingExclude) && !members.includes(projectRoot)) {
+      members.push(projectRoot);
+      changed = true;
+    }
+
+    const filteredExclude = exclude.filter(
+      (pattern) => !matchesWorkspacePattern(projectRoot, pattern),
+    );
+
+    if (filteredExclude.length !== exclude.length) {
+      changed = true;
+    }
+
+    if (!changed) {
+      return;
+    }
+
+    workspaceTable["members"] = members;
+
+    if (filteredExclude.length > 0) {
+      workspaceTable["exclude"] = filteredExclude;
+    } else {
+      delete workspaceTable["exclude"];
+    }
+
+    tree.write(
+      rootPyprojectPath,
+      `${stringifyToml(parsed as Parameters<typeof stringifyToml>[0]).trimEnd()}\n`,
+    );
     return;
   }
 
@@ -135,6 +191,53 @@ function ensureWorkspaceMembership(tree: Tree, projectRoot: string): void {
   ].join("\n");
 
   tree.write(rootPyprojectPath, `${current.trimEnd()}${workspaceTable}`);
+}
+
+function parseTomlDocument(content: string): unknown {
+  try {
+    return parseToml(content);
+  } catch {
+    return undefined;
+  }
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null;
+}
+
+function ensureChildTable(
+  parent: Record<string, unknown>,
+  key: string,
+): Record<string, unknown> {
+  const current = parent[key];
+  if (isRecord(current)) {
+    return current;
+  }
+
+  const created: Record<string, unknown> = {};
+  parent[key] = created;
+  return created;
+}
+
+function toStringArray(value: unknown): string[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value.filter((entry): entry is string => typeof entry === "string");
+}
+
+function matchesWorkspacePattern(
+  projectRoot: string,
+  pattern: string,
+): boolean {
+  const normalizedPattern = pattern.replace(/\\/g, "/").trim();
+  return (
+    normalizedPattern === projectRoot ||
+    minimatch(projectRoot, normalizedPattern, {
+      dot: true,
+    })
+  );
 }
 
 export default projectGenerator;

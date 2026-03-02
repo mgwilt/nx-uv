@@ -84,6 +84,90 @@ describe("project generator", () => {
     expect(pyproject).toContain('members = ["packages/py/member-project"]');
   });
 
+  it("does not mutate workspace members when existing glob already matches project root", async () => {
+    tree.write(
+      "pyproject.toml",
+      [
+        "[project]",
+        'name = "workspace"',
+        'version = "0.1.0"',
+        "",
+        "[tool.uv.workspace]",
+        'members = ["packages/py/*"]',
+        "",
+      ].join("\n"),
+    );
+
+    await projectGenerator(tree, {
+      name: "glob-member",
+      workspaceMember: true,
+      skipFormat: true,
+    });
+
+    const pyproject = tree.read("pyproject.toml", "utf-8") ?? "";
+    const matches = pyproject.match(/packages\/py\/glob-member/g) ?? [];
+
+    expect(matches).toHaveLength(0);
+    expect(pyproject).toContain('members = ["packages/py/*"]');
+  });
+
+  it("appends project root to members when existing workspace globs do not match", async () => {
+    tree.write(
+      "pyproject.toml",
+      [
+        "[project]",
+        'name = "workspace"',
+        'version = "0.1.0"',
+        "",
+        "[tool.uv.workspace]",
+        'members = ["apps/*"]',
+        "",
+      ].join("\n"),
+    );
+
+    await projectGenerator(tree, {
+      name: "unmatched-member",
+      workspaceMember: true,
+      skipFormat: true,
+    });
+
+    const pyproject = tree.read("pyproject.toml", "utf-8") ?? "";
+
+    expect(pyproject).toContain(
+      'members = [ "apps/*", "packages/py/unmatched-member" ]',
+    );
+  });
+
+  it("removes blocking exclude entries and includes the generated project", async () => {
+    tree.write(
+      "pyproject.toml",
+      [
+        "[project]",
+        'name = "workspace"',
+        'version = "0.1.0"',
+        "",
+        "[tool.uv.workspace]",
+        'members = ["packages/py/*"]',
+        'exclude = ["packages/py/blocked", "packages/py/legacy-*"]',
+        "",
+      ].join("\n"),
+    );
+
+    await projectGenerator(tree, {
+      name: "blocked",
+      workspaceMember: true,
+      skipFormat: true,
+    });
+
+    const pyproject = tree.read("pyproject.toml", "utf-8") ?? "";
+
+    expect(pyproject).toContain(
+      'members = [ "packages/py/*", "packages/py/blocked" ]',
+    );
+    expect(pyproject).not.toContain('exclude = [ "packages/py/blocked"');
+    expect(pyproject).toContain('exclude = [ "packages/py/legacy-*" ]');
+  });
+
   it("does not mutate root pyproject when workspace membership is disabled", async () => {
     tree.write(
       "pyproject.toml",

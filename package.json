@@ -43,6 +43,7 @@
     "@iarna/toml": "^2.2.5",
     "@nx/devkit": "22.5.3",
     "@nx/vite": "22.5.3",
+    "minimatch": "^10.2.4",
     "tslib": "^2.3.0",
     "vitest": "^4.0.18"
   },
@@ -57,7 +58,6 @@
     "@nx/eslint-plugin": "22.5.3",
     "@nx/js": "22.5.3",
     "@nx/vitest": "22.5.3",
-    "nx": "22.5.3",
     "@swc-node/register": "^1.11.1",
     "@swc/core": "^1.15.18",
     "@types/node": "^20.19.9",
@@ -67,6 +67,7 @@
     "jsdom": "^27.1.0",
     "jsonc-eslint-parser": "^2.4.0",
     "lefthook": "^2.1.2",
+    "nx": "22.5.3",
     "prettier": "^3.6.2",
     "typescript": "~5.9.2",
     "typescript-eslint": "^8.56.0",
