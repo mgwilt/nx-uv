@@ -21,7 +21,7 @@ def main() -> None:
     x = torch.randn(1, 4, device=device)
 
     with torch.no_grad():
-      y = model(x)
+        y = model(x)
 
     print(f"Inference device: {device}")
     print(f"Output tensor: {y}")

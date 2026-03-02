@@ -568,7 +568,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.inference.nvidia
-    command: ["uv", "run", "--", "python", "scripts/pytorch_inference_smoke.py"]
+    command: ['uv', 'run', '--', 'python', 'scripts/pytorch_inference_smoke.py']
     deploy:
       resources:
         reservations:
@@ -603,7 +603,7 @@ def main() -> None:
     x = torch.randn(1, 4, device=device)
 
     with torch.no_grad():
-      y = model(x)
+        y = model(x)
 
     print(f"Inference device: {device}")
     print(f"Output tensor: {y}")

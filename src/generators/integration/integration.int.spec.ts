@@ -180,6 +180,7 @@ describe("integration generator", () => {
     expect(compose).toContain("driver: nvidia");
     expect(compose).toContain("capabilities: [gpu]");
     expect(smoke).toContain("CUDA is not available");
+    expect(smoke).toContain("        y = model(x)");
   });
 
   it("supports pytorch cpu backend without notebooks or docker assets", async () => {
